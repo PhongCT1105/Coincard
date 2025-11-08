@@ -13,9 +13,10 @@ interface Coin {
 interface CryptoListProps {
   showAll: boolean
   setShowAll: (v: boolean) => void
+  onSelectCoin: (coin: {name: string; price: number}) => void
 }
 
-export default function CryptoList({ showAll, setShowAll }: CryptoListProps) {
+export default function CryptoList({ showAll, setShowAll, onSelectCoin }: CryptoListProps) {
   const [cryptos, setCryptos] = useState<Coin[]>([])
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState<"Market cap" | "Top gainers" | "Top losers">("Market cap")
@@ -62,11 +63,6 @@ export default function CryptoList({ showAll, setShowAll }: CryptoListProps) {
     if (v >= 1e9) return (v / 1e9).toFixed(2) + "B"
     if (v >= 1e6) return (v / 1e6).toFixed(2) + "M"
     return v.toLocaleString()
-  }
-
-  const getCoinIcon = (name: string): string =>{
-    const symbol = name.split(" ")[0].toLowerCase().replace(/[^a-z0-9]/g, "")
-    return `https://cryptoicons.org/api/icon/btc/64`
   }
 
   const displayList = showAll ? cryptos : cryptos.slice(0, 5)
@@ -120,15 +116,7 @@ export default function CryptoList({ showAll, setShowAll }: CryptoListProps) {
             className="grid grid-cols-6 items-center py-5 w-full flex-1 hover:bg-neutral-900 transition"
           >
             <div className="flex items-center gap-3 col-span-2">
-              <img
-                src={getCoinIcon(coin.NAME)}
-                alt={coin.NAME}
-                className="w-8 h-8 rounded-full"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement
-                  target.style.display = "none"
-                }}
-              />
+              {/* d */}
               <div>
                 <p className="font-medium">{coin.NAME}</p>
               </div>
@@ -145,7 +133,13 @@ export default function CryptoList({ showAll, setShowAll }: CryptoListProps) {
             </p>
 
             <div className="flex justify-end pr-2">
-              <button className="px-4 py-1 text-sm rounded-full text-[#587BFA] font-medium transition">
+              <button 
+                onClick={() => {
+                  console.log("But button pressed: ", {name: coin.NAME, price: coin.PRICE})
+                  onSelectCoin({name: coin.NAME, price: coin.PRICE})
+                }}
+                className="px-4 py-1 cursor-pointer text-sm rounded-full text-[#587BFA] font-medium transition"
+              >
                 Buy
               </button>
             </div>
@@ -157,7 +151,7 @@ export default function CryptoList({ showAll, setShowAll }: CryptoListProps) {
         <div className="mt-6 flex justify-center">
           <button
             onClick={() => setShowAll(true)}
-            className="w-full py-3 bg-neutral-800 rounded-full text-gray-300 hover:bg-[#011D5B] hover:text-[#587BFA] transition"
+            className="w-full py-3 cursor-pointer bg-neutral-800 rounded-full text-gray-300 hover:bg-[#011D5B] hover:text-[#587BFA] transition"
           >
             Browse all
           </button>
