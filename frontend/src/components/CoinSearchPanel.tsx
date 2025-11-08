@@ -7,6 +7,7 @@ interface Coin {
   PRICE: number
   MARKET_CAP: number
   CHANGE: number
+  SYMBOL: string
   THUMB_IMAGE: string
 }
 
@@ -67,6 +68,7 @@ export default function CoinSearchPanel({ onBack, onSelectCoin }) {
               name: coin.NAME,
               price: coin.PRICE,
               thumb_image: coin.THUMB_IMAGE,
+              symbol: coin.SYMBOL,
             })}
             className="flex items-center justify-between px-4 py-3 hover:bg-neutral-800 cursor-pointer rounded-xl transition"
           >

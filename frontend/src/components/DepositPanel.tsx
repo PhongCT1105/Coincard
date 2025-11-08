@@ -49,6 +49,7 @@ export default function DepositPanel({ selectedCoin, onSelectCoin }) {
 
   const coinName = selectedCoin?.name || "Bitcoin"
   const coinThumb = selectedCoin?.thumb_image || btc
+  const coinSym = selectedCoin?.symbol || "BTC"
 
   if (showOrderTypes) {
     return (
@@ -115,7 +116,7 @@ export default function DepositPanel({ selectedCoin, onSelectCoin }) {
       <div>
         <AmountInput 
           amount={isReversed ? coinEquivalent : usd} 
-          currency={isReversed ? coinName : "USD"} 
+          currency={isReversed ? coinSym : "USD"} 
           onChange={handleChange} 
         />
 
