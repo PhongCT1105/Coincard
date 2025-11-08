@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-
 from src.agents.news_agent.ingestion import ingest_news
+from src.stores.selection_store import new_run_id, save_docs, set_latest_run
 
 router = APIRouter(prefix="/news", tags=["News"])
 
@@ -20,10 +20,16 @@ def fetch_news(req: NewsRequest):
     if not results:
         raise HTTPException(status_code=404, detail="No posts found.")
 
+    # Save results into store
+    run_id = new_run_id()
+    save_docs(run_id, results)
+    set_latest_run(req.token, run_id)
+
     # Extract per-post sentiment scores
     sentiment_scores = [r.get("sentiment_score", 0.0) for r in results]
 
     return {
+        "run_id": run_id,
         "count": len(results),
         "results": results,             # full posts with sentiment data
         "sentiment_scores": sentiment_scores  # list of scores per post

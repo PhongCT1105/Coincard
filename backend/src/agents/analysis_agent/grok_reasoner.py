@@ -155,19 +155,26 @@ def answer_with_grok(
 
 # --------- Simple local test ---------
 if __name__ == "__main__":
-    sample_docs = [
-        {
-            "id": "demo-1",
-            "title": "BTC whales trim holdings",
-            "context": (
-                "Large Bitcoin wallets moved coins to exchanges after a 12% rally, "
-                "signaling profit taking and possible near-term volatility."
-            ),
-            "link": "https://example.com/btc-whales",
-        }
-    ]
+    from src.stores.selection_store import load_docs, get_latest_run
 
-    result = answer_with_grok("Is BTC momentum weakening?", sample_docs)
+    token = "BTC"
+    question = "Should I buy BTC in the short term?"
+
+    print(f"🔍 Testing Grok Reasoner with latest cached docs for {token}...\n")
+
+    run_id = get_latest_run(token)
+    if not run_id:
+        print(f"⚠️ No cached docs found for {token}. Please run /news first.")
+        exit()
+
+    docs = load_docs(run_id)
+    if not docs:
+        print(f"⚠️ No documents found in Redis for run_id={run_id}.")
+        exit()
+
+    print(f"✅ Loaded {len(docs)} docs (run_id={run_id})\n")
+
+    result = answer_with_grok(question, docs)
 
     print("=== Model Answer ===")
     print(result["answer"])

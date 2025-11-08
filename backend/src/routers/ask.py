@@ -1,42 +1,38 @@
-from fastapi import APIRouter
-from pydantic import BaseModel, ConfigDict, field_validator
-from typing import List, Optional
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from typing import List, Optional, Union
 
+from src.stores.selection_store import load_docs, get_latest_run
 from src.agents.analysis_agent.grok_reasoner import answer_with_grok
 
-
 router = APIRouter(prefix="/ask", tags=["Ask"])
-
-
-class DocumentPayload(BaseModel):
-    """Minimal context required for Grok; extra keys are forwarded unchanged."""
-
-    model_config = ConfigDict(extra="allow")
-
-    id: Optional[str] = None
-    title: Optional[str] = None
-    context: str
-    link: Optional[str] = None
-
 
 class AskReq(BaseModel):
     token: str
     question: str
-    documents: List[DocumentPayload]
+    run_id: Optional[str] = None
+    # can be doc IDs or 1-based indices
+    selected_ids: Optional[List[Union[str, int]]] = None
     token_budget_tokens: Optional[int] = 3800
     model_answer_tokens: Optional[int] = 500
 
-    @field_validator("documents")
-    @classmethod
-    def _require_documents(cls, value: List[DocumentPayload]):
-        if not value:
-            raise ValueError("Provide at least one document for context.")
-        return value
-
-
 @router.post("/")
 def ask(req: AskReq):
-    docs = [doc.model_dump(exclude_none=True) for doc in req.documents]
+    # Use explicit run_id, else fall back to 'latest run for this token'
+    run_id = req.run_id or get_latest_run(req.token)
+    if not run_id:
+        raise HTTPException(
+            status_code=400,
+            detail="No run context. Call /news first (or pass token only and I will use the latest run for that token)."
+        )
+
+    docs = load_docs(run_id, req.selected_ids)
+    if not docs:
+        raise HTTPException(
+            status_code=404,
+            detail="No matching docs found for run_id/selection. "
+                   "Tip: use indices like [1,3] or pass actual doc IDs from /news."
+        )
 
     result = answer_with_grok(
         question=req.question,
@@ -44,9 +40,4 @@ def ask(req: AskReq):
         token_budget_tokens=req.token_budget_tokens or 3800,
         model_answer_tokens=req.model_answer_tokens or 500,
     )
-
-    return {
-        "token": req.token.upper(),
-        "answer": result["answer"],
-        "sources": result["sources"],
-    }
+    return {"token": req.token.upper(), "run_id": run_id, "answer": result["answer"], "sources": result["sources"]}
