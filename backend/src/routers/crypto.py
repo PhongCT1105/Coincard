@@ -6,17 +6,17 @@ from src.deps import get_db_connection
 
 router = APIRouter()
 
-@router.get("/top-20-coins", tags=["crypto"]) # Use 'tags' to group in docs
+@router.get("/top-20-coins", tags=["crypto"])
 def get_top_20_coins(db: snowflake.connector.SnowflakeConnection = Depends(get_db_connection)):
     print(f"[{datetime.now()}] API call received for /top-20-coins")
-    
+
     query = """
-    SELECT NAME, PRICE, MARKET_CAP, CHANGE, TIMESTAMP
+    SELECT NAME, PRICE, MARKET_CAP, CHANGE, THUMB_IMAGE, TIMESTAMP
     FROM CRYPTO
-    ORDER BY TIMESTAMP DESC, MARKET_CAP DESC, PRICE DESC, CHANGE DESC
+    ORDER BY TIMESTAMP DESC, MARKET_CAP DESC, PRICE DESC, CHANGE DESC, NAME ASC
     LIMIT 20;
     """
-    
+
     try:
         with db.cursor(snowflake.connector.DictCursor) as cur:
             print(f"[{datetime.now()}] Executing Snowflake query...")
