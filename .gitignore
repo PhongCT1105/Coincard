@@ -111,6 +111,7 @@ secrets/
 credentials/
 config.yaml
 config.yml
+**myenv**
 
 # ==========================================
 # 🐳 Docker / Compose
