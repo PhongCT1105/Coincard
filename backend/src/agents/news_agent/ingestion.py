@@ -7,6 +7,7 @@ from typing import List, Dict
 from dotenv import load_dotenv
 from xdk import Client
 
+
 # ------------ helpers ------------
 URL_RE    = re.compile(r"https?://\S+")
 HANDLE_RE = re.compile(r"@\w+")
@@ -91,7 +92,7 @@ def ingest_news(token: str, top_k: int = 6) -> List[Dict[str, str]]:
     neg_words = "-pump -signal -copytrading -copy -giveaway -airdrop -scalp -memecoin"
     query = f"({token} OR #{token} OR ${token}) lang:en has:links -is:retweet -is:quote -is:reply {neg_words}"
 
-    resp = client.posts.search_recent(query=query, max_results=100)
+    resp = client.posts.search_recent(query=query, max_results=10)
     if not getattr(resp, "data", None):
         return []
 
@@ -125,12 +126,25 @@ def ingest_news(token: str, top_k: int = 6) -> List[Dict[str, str]]:
     docs.sort(key=lambda d: d["score"], reverse=True)
     top = docs[:top_k]
 
+    from src.agents.sentiment_agent.sentiment_agent import sentiment_analysis
+
     out = []
     for d in top:
+        emotions = {"positive": 0.0, "negative": 0.0, "neutral": 0.0}
+        try:
+            emotions = sentiment_analysis(d["text"]) or emotions
+        except Exception:
+            pass  # keep zeros if model/env fails
+
+        sentiment_score = emotions["positive"] - emotions["negative"]
+
         out.append({
-            "title":   generate_title_with_xai(d["text"]),
-            "context": d["text"],
-            "link":    f"https://x.com/i/web/status/{d['id']}",
+            "id":       d["id"],
+            "title":    generate_title_with_xai(d["text"]),
+            "context":  d["text"],
+            "link":     f"https://x.com/i/web/status/{d['id']}",
+            "sentiment": emotions,                 # per-post breakdown
+            "sentiment_score": sentiment_score,    # per-post scalar
         })
     return out
 

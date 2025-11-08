@@ -17,6 +17,7 @@ env.bak/
 *.dll
 *.dylib
 *.pyd
+*.rdb
 
 # ==========================================
 # 📦 Package / Build / Distribution
@@ -149,3 +150,8 @@ Thumbs.db
 *.swo
 *.orig
 *.tmp
+
+
+# ==========================================
+# 🧑‍💻 Custom ignores
+**/*.rdb
