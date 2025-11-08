@@ -1,24 +1,33 @@
+# src/settings.py
 import os
-from dotenv import load_dotenv
 from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-load_dotenv()
-
 class Settings(BaseSettings):
+    # --- App ---
     app_env: str = "dev"
     api_port: int = 8000
-    cors_origins: List[str] = ["http://localhost:3000"]  
+    cors_origins: List[str] = ["http://localhost:3000"]
 
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
+    # --- Redis / cache (ADD THESE) ---
+    redis_url: str = "redis://localhost:6379/0"
+    docs_ttl_seconds: int = 1800    # cache for run_id -> docs
+    chat_ttl_seconds: int = 3600    # chat session TTL
 
-    # Snowflake Config
-    SNOWFLAKE_USER: str = os.getenv("SNOWFLAKE_USER")
-    SNOWFLAKE_PASSWORD: str = os.getenv("SNOWFLAKE_PASSWORD")
-    SNOWFLAKE_ACCOUNT: str = os.getenv("SNOWFLAKE_ACCOUNT")
+    # --- Snowflake (use BaseSettings to read env instead of os.getenv) ---
+    SNOWFLAKE_USER: str | None = None
+    SNOWFLAKE_PASSWORD: str | None = None
+    SNOWFLAKE_ACCOUNT: str | None = None
     SNOWFLAKE_WAREHOUSE: str = "PROJECT_COINCARD"
     SNOWFLAKE_DATABASE: str = "PROJECT_DB"
     SNOWFLAKE_SCHEMA: str = "CORE"
     SNOWFLAKE_ROLE: str = "PROJECT_ANALYST"
+
+    # Pydantic v2 settings
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=False,   # REDIS_URL maps to redis_url
+        extra="ignore",         # <- prevents extra_forbidden for unrelated envs
+    )
 
 settings = Settings()
