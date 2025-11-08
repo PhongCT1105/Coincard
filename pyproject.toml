@@ -1,0 +1,13 @@
+[project]
+name = "replica-coinbase-api"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi[standard]",
+  "pydantic-settings",
+  "python-dotenv",
+
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
