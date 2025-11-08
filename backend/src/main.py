@@ -1,10 +1,8 @@
-import os
 import sys
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from src.settings import settings
-from src.routers import health, crypto
+from src.routers import health, crypto, portfolio
 import snowflake.connector
 from datetime import datetime
 
@@ -23,6 +21,7 @@ app.add_middleware(
 # Include routers
 app.include_router(health.router)
 app.include_router(crypto.router, prefix="/crypto")
+app.include_router(portfolio.router, prefix="/portfolio")
 
 # Root route
 @app.get("/")
