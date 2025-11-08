@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { fetchJson } from "@/lib/api"
+import type { SelectedCoin } from "@/types/coin"
 
 interface Coin {
   NAME: string
@@ -15,7 +16,7 @@ interface Coin {
 interface CryptoListProps {
   showAll: boolean
   setShowAll: (v: boolean) => void
-  onSelectCoin: (coin: {name: string; price: number, thumb_image: string}) => void
+  onSelectCoin: (coin: SelectedCoin) => void
 }
 
 export default function CryptoList({ showAll, setShowAll, onSelectCoin }: CryptoListProps) {

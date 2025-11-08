@@ -3,19 +3,17 @@ import btc from "../../assets/Bitcoin.svg.png"
 import { ArrowDownCircle, ArrowUpCircle, Landmark, Wallet, Repeat } from "lucide-react"
 import OrderTypes from "./OrderTypes"
 import AmountInput from "./AmountInput"
+import type { SelectedCoin } from "@/types/coin"
 
-interface SelectedCoin {
-  name: string
-  price: number
-  thumb_image: string
-}
+const tabs = ["buy", "sell", "convert"] as const
+type TradeMode = typeof tabs[number]
 
 interface DepositPanelProps {
   selectedCoin: SelectedCoin | null
 }
 
 export default function DepositPanel({ selectedCoin }: DepositPanelProps) {
-  const [mode, setMode] = useState<"buy" | "sell" | "convert">("buy")
+  const [mode, setMode] = useState<TradeMode>("buy")
   const [showOrderTypes, setShowOrderTypes] = useState(false)
   const [orderType, setOrderType] = useState("One-time order")
   const [usd, setUsd] = useState("")
@@ -76,10 +74,10 @@ export default function DepositPanel({ selectedCoin }: DepositPanelProps) {
     <div className="bg-[#0d0d0d] rounded-xl pt-4 text-white space-y-6">
       {/* Tabs */}
       <div className="flex gap-2 bg-neutral-800 rounded-full cursor-pointer w-fit">
-        {["buy", "sell", "convert"].map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab}
-            onClick={() => setMode(tab as "buy" | "sell" | "convert")}
+            onClick={() => setMode(tab)}
             className={`capitalize px-5 py-2 rounded-full text-sm font-medium transition ${
               mode === tab ? "bg-white text-black" : "text-gray-300 hover:text-white"
             }`}
