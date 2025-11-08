@@ -34,7 +34,7 @@ export default function AmountInput() {
                 value={amount}
                 onChange={handleChange}
                 placeholder="0"
-                className="bg-transparent text-7xl font-semibold text-white focus:outline-none appearance-none text-right shrink-0"
+                className="bg-transparent text-7xl text-white focus:outline-none appearance-none text-right shrink-0"
                 style={{
                   minWidth: "1ch", 
                   width: `${Math.max(amount.length - 1, 1.3)}ch`,
