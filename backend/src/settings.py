@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     app_env: str = "dev"
     api_port: int = 8000
     cors_origins: List[str] = ["http://localhost:3000"]
+    cors_allow_origin_regex: str | None = r"https://.*\.vercel\.app$"
 
     # --- Redis / cache (ADD THESE) ---
     redis_url: str = "redis://localhost:6379/0"

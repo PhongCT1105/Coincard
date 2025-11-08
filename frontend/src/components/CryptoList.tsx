@@ -1,6 +1,8 @@
 "use client"
 import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { fetchJson } from "@/lib/api"
+import type { SelectedCoin } from "@/types/coin"
 
 interface Coin {
   NAME: string
