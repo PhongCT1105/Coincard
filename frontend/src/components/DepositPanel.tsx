@@ -1,6 +1,8 @@
 import { useState } from "react"
-import btc from '../../assets/Bitcoin.svg.png'
+import btc from "../../assets/Bitcoin.svg.png"
 import { ArrowDownCircle, ArrowUpCircle, Landmark, Wallet } from "lucide-react"
+import OrderTypes from "./OrderTypes"
+import AmountInput from "./AmountInput"
 
 export default function DepositPanel() {
   const [mode, setMode] = useState("buy")
@@ -11,64 +13,23 @@ export default function DepositPanel() {
 
   if (showOrderTypes) {
     return (
-      <div className="bg-[#0d0d0d] rounded-xl p-6 text-white space-y-6">
-        <div className="relative flex items-center mb-4">
-          <button
-            className="absolute left-0 text-white text-sm hover:text-[#587BFA] font-bold"
-            onClick={() => setShowOrderTypes(false)}
-          >
-            ←
-          </button>
-          <h2 className="text-xl font-semibold w-full text-center">Order Types</h2>
-        </div>
-
-
-        <div className="space-y-4">
-          {[
-            {
-              title: "One-time order",
-              desc: "Order executes as soon as possible at the current price",
-              icon: "https://static-assets.coinbase.com/ui-infra/illustration/v1/pictogram/svg/dark/fast-3.svg",
-            },
-            {
-              title: "Limit order",
-              desc: "Order executes at a target price you set, or better",
-              icon: "https://static-assets.coinbase.com/ui-infra/illustration/v1/pictogram/svg/dark/lowFees-3.svg",
-            },
-            {
-              title: "Recurring buy",
-              desc: "Set up automatic daily, weekly, bi-weekly or monthly purchases",
-              icon: "https://static-assets.coinbase.com/ui-infra/illustration/v1/pictogram/svg/dark/restaking-3.svg",
-            },
-          ].map((t) => (
-            <button
-              key={t.title}
-              onClick={() => {
-                setOrderType(t.title)
-                setShowOrderTypes(false)
-              }}
-              className={`w-full text-left p-4 rounded-xl transition ${orderType === t.title
-                ? "bg-neutral-800 text-white"
-                : "bg-neutral-900 hover:bg-neutral-800"
-                }`}
-            >
-              <div className="flex justify-between items-center">
-                <img src={t.icon} alt={t.title} className="w-10 h-10 mr-5" />
-                <div>
-                  <div className="font-semibold">{t.title}</div>
-                  <div className="text-sm text-gray-400">{t.desc}</div>
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
+      <div className="bg-[#0d0d0d] rounded-xl p-6 text-white">
+        <OrderTypes
+          onBack={() => setShowOrderTypes(false)}
+          onSelect={(type) => {
+            setOrderType(type)
+            setShowOrderTypes(false)
+          }}
+        />
       </div>
     )
   }
 
+
   return (
-    <div className="bg-[#0d0d0d] rounded-xl pt-5 text-white space-y-6">
-      <div className="flex gap-2 bg-neutral-900 p-1 rounded-full w-fit">
+    <div className="bg-[#0d0d0d] rounded-xl pt-4 text-white space-y-6">
+      {/* Tabs */}
+      <div className="flex gap-2 bg-neutral-800 p-1 rounded-full w-fit">
         {["buy", "sell", "convert"].map((tab) => (
           <button
             key={tab}
@@ -86,50 +47,44 @@ export default function DepositPanel() {
       <div>
         <button
           onClick={() => setShowOrderTypes(true)}
-          className="w-full flex items-center justify-between bg-neutral-900 px-4 py-3 rounded-xl text-gray-300 hover:bg-neutral-800 transition"
+          className="w-[60%] items-center bg-neutral-800 px-4 py-3 rounded-3xl text-white font-bold hover:bg-neutral-900 transition"
         >
           <span>{orderType}</span>
-          <span className="text-gray-400">▼</span>
+          <svg
+            className="ml-3 h-5 w-5 inline" // Tailwind classes for margin, height, and width
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+          </svg>
         </button>
       </div>
 
-      {/* Amount Input */}
-      <div className="relative text-center py-6">
-        <div className="text-6xl font-semibold text-gray-400">0{currency}</div>
-        <button
-          onClick={() =>
-            setCurrency(currency === "USD" ? "BTC" : "USD")
-          }
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 text-sm text-[#587BFA] hover:underline"
-        >
-          Convert to {currency === "USD" ? "BTC" : "USD"}
-        </button>
-      </div>
+      <AmountInput />
 
-      <div className="space-y-6">
+
+      {/* Pay With + Buy Section */}
+      <div className="space-y-6 relative">
+        {/* Pay with */}
         <div className="flex justify-between items-center pt-4">
-          <div>
-            <div className="flex items-center gap-2 font-semibold">
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"
-                alt="visa"
-                className="w-8 mr-2"
-              />
-              <div>
-                <span>Pay with</span>
-                <p className="text-sm text-gray-400">Debit ***5813</p>
-              </div>
+          <div className="flex items-center gap-3 font-semibold">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"
+              alt="visa"
+              className="w-8"
+            />
+            <div>
+              <span>Pay with</span>
+              <p className="text-sm text-gray-400">Debit ***5813</p>
             </div>
           </div>
         </div>
 
-        <div className=" pt-4">
-          <div className="flex items-center gap-2 font-semibold mb-1">
-            <img
-              src={btc}
-              alt="btc"
-              className="w-8 mr-2"
-            />
+        <div className="pt-4">
+          <div className="flex items-center gap-3 font-semibold">
+            <img src={btc} alt="btc" className="w-8" />
             <div>
               <span>Buy</span>
               <p className="text-sm text-gray-400">{buyCoin}</p>
@@ -141,6 +96,8 @@ export default function DepositPanel() {
       <button className="w-full bg-[#587BFA] hover:bg-[#3b6ef0] transition py-4 rounded-full font-semibold">
         Review order
       </button>
+
+      {/* Actions */}
       <div className="space-y-3 border-t border-neutral-800 pt-4 font-bold">
         {[
           { icon: ArrowUpCircle, text: "Send crypto" },
