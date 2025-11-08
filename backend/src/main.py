@@ -5,6 +5,7 @@ from src.settings import settings
 from src.routers import health, crypto, portfolio
 import snowflake.connector
 from datetime import datetime
+from src.routers import news
 
 # Create FastAPI app
 app = FastAPI(title="Replica Coinbase API", version="0.1.0")
@@ -22,6 +23,8 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(crypto.router, prefix="/crypto")
 app.include_router(portfolio.router, prefix="/portfolio")
+app.include_router(news.router)
+
 
 # Root route
 @app.get("/")
