@@ -81,7 +81,7 @@ export default function DepositPanel({ selectedCoin, onSelectCoin }) {
     <div className="bg-[#0d0d0d] rounded-xl pt-4 text-white space-y-6">
       {/* Tabs */}
       <div className="flex gap-2 bg-neutral-800 rounded-full cursor-pointer w-fit">
-        {["buy", "sell", "convert"].map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setMode(tab)}

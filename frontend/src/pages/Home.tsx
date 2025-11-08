@@ -3,6 +3,7 @@ import Topbar from "@/components/Topbar"
 import CryptoList from "@/components/CryptoList"
 import DepositPanel from "@/components/DepositPanel"
 import { useState } from "react"
+import type { SelectedCoin } from "@/types/coin"
 
 export default function Home() {
   const [showAll, setShowAll] = useState(false)
