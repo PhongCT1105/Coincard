@@ -2,7 +2,7 @@ import snowflake.connector
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 import sys
-from src.routers.deps import get_db_connection
+from src.deps import get_db_connection
 from src.routers.schemas import TransactionRequest, Portfolio, Asset, TransactionRecord
 from typing import List
 
