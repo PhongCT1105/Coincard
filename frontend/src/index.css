@@ -10,7 +10,6 @@ html, body, #root {
   overflow-x: hidden;
 }
 
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
