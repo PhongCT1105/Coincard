@@ -1,9 +1,10 @@
-from .settings import settings
-import snowflake.connector
 import sys
-from fastapi import HTTPException
 from datetime import datetime
-from src.settings import settings  # Import your new settings
+
+import snowflake.connector
+from fastapi import HTTPException
+
+from src.settings import settings
 
 def get_settings():
     return settings

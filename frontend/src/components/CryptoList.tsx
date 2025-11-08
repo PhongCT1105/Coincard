@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { fetchJson } from "@/lib/api"
 
 interface Coin {
   NAME: string
@@ -25,8 +26,7 @@ export default function CryptoList({ showAll, setShowAll, onSelectCoin }: Crypto
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/crypto/top-20-coins")
-        const json = await res.json()
+        const json = await fetchJson<{ data: Coin[] }>("/crypto/top-20-coins")
         console.log("Fetched crypto data:", json)
         const data: Coin[] = json.data || []
         setCryptos(sortCoins(data, "Market cap"))
