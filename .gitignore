@@ -1,0 +1,6 @@
+**.env**
+
+backend/myenv
+
+**.vscode/**
+**pycache__/**
