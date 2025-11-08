@@ -2,7 +2,7 @@ import snowflake.connector
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 import sys
-from src.routers.deps import get_db_connection
+from src.deps import get_db_connection
 from src.routers.schemas import TransactionRequest, Portfolio, Asset, TransactionRecord
 from typing import List
 
@@ -36,7 +36,7 @@ def _get_asset_amount(user_id: str, coin_id: str, cur: snowflake.connector.curso
     result = cur.fetchone()
     return result[0] if result else 0.0
 
-@router.get("/{user_id}", response_model=Portfolio, tags=["Portfolio"])
+@router.get("/{user_id}", response_model=Portfolio, tags=["portfolio"])
 def get_user_portfolio(user_id: str, db: snowflake.connector.SnowflakeConnection = Depends(get_db_connection)):
     try:
         with db.cursor() as cur:
@@ -47,7 +47,7 @@ def get_user_portfolio(user_id: str, db: snowflake.connector.SnowflakeConnection
         raise HTTPException(status_code=500, detail="Database error")
 
 # --- ROUTE 2: Get Transaction History ---
-@router.get("/{user_id}/history", response_model=List[TransactionRecord], tags=["Portfolio"])
+@router.get("/{user_id}/history", response_model=List[TransactionRecord], tags=["portfolio"])
 def get_transaction_history(
     user_id: str,
     db: snowflake.connector.SnowflakeConnection = Depends(get_db_connection)
@@ -66,7 +66,7 @@ def get_transaction_history(
         raise HTTPException(status_code=500, detail="Database error")
 
 # --- ROUTE 3: Execute a Transaction (The Core Logic) ---
-@router.post("/transact", response_model=Portfolio, tags=["Portfolio"])
+@router.post("/transact", response_model=Portfolio, tags=["portfolio"])
 def execute_transaction(tx: TransactionRequest, db: snowflake.connector.SnowflakeConnection = Depends(get_db_connection)):
     """
     Execute a BUY or SELL transaction.
