@@ -48,11 +48,7 @@ def get_user_portfolio(user_id: str, db: snowflake.connector.SnowflakeConnection
 
 # --- ROUTE 2: Get Transaction History ---
 @router.get("/{user_id}/history", response_model=List[TransactionRecord], tags=["portfolio"])
-def get_transaction_history(
-    user_id: str,
-    db: snowflake.connector.SnowflakeConnection = Depends(get_db_connection)
-):
-    """Get a user's entire transaction history."""
+def get_transaction_history(user_id: str, db: snowflake.connector.SnowflakeConnection = Depends(get_db_connection)):
     try:
         with db.cursor(snowflake.connector.DictCursor) as cur: # DictCursor is easy
             cur.execute(
@@ -68,10 +64,6 @@ def get_transaction_history(
 # --- ROUTE 3: Execute a Transaction (The Core Logic) ---
 @router.post("/transact", response_model=Portfolio, tags=["portfolio"])
 def execute_transaction(tx: TransactionRequest, db: snowflake.connector.SnowflakeConnection = Depends(get_db_connection)):
-    """
-    Execute a BUY or SELL transaction.
-    This is an atomic operation: all steps succeed or all fail.
-    """
     total_usd = tx.amount_coin * tx.price_per_coin
     
     try:
