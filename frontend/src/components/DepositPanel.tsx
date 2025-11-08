@@ -3,22 +3,16 @@ import btc from "../../assets/Bitcoin.svg.png"
 import { ArrowDownCircle, ArrowUpCircle, Landmark, Wallet, Repeat } from "lucide-react"
 import OrderTypes from "./OrderTypes"
 import AmountInput from "./AmountInput"
-import type { SelectedCoin } from "@/types/coin"
+import CoinSearchPanel from "./CoinSearchPanel"
 
-const tabs = ["buy", "sell", "convert"] as const
-type TradeMode = typeof tabs[number]
-
-interface DepositPanelProps {
-  selectedCoin: SelectedCoin | null
-}
-
-export default function DepositPanel({ selectedCoin }: DepositPanelProps) {
-  const [mode, setMode] = useState<TradeMode>("buy")
+export default function DepositPanel({ selectedCoin, onSelectCoin }) {
+  const [mode, setMode] = useState("buy")
   const [showOrderTypes, setShowOrderTypes] = useState(false)
   const [orderType, setOrderType] = useState("One-time order")
   const [usd, setUsd] = useState("")
   const [coinEquivalent, setCoinEquivalent] = useState("")
   const [isReversed, setIsReversed] = useState(false)
+  const [showCoinSearch, setShowCoinSearch] = useState(false)
 
   useEffect(() => {
     if (selectedCoin) {
@@ -67,6 +61,19 @@ export default function DepositPanel({ selectedCoin }: DepositPanelProps) {
           }}
         />
       </div>
+    )
+  }
+
+  if (showCoinSearch) {
+    return (
+      <CoinSearchPanel
+        onBack={() => setShowCoinSearch(false)}
+        onSelectCoin={(coin) => {
+          onSelectCoin(coin)
+          setShowCoinSearch(false)
+          if (coin) selectedCoin = coin
+        }}
+      />
     )
   }
 
@@ -127,7 +134,7 @@ export default function DepositPanel({ selectedCoin }: DepositPanelProps) {
 
       {/* Pay + Buy Section */}
       <div className="space-y-6 relative">
-        <div className="flex items-center gap-3 font-semibold">
+        <div className="flex items-center gap-3 font-semibold py-2 px-3">
           <img
             src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"
             alt="visa"
@@ -139,13 +146,19 @@ export default function DepositPanel({ selectedCoin }: DepositPanelProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 font-semibold">
-          <img src={coinThumb} alt="btc" className="w-8" />
-          <div>
-            <span>Buy</span>
-            <p className="text-sm text-gray-400">{coinName}</p>
+        <button
+          onClick={() => setShowCoinSearch(true)}
+          className="flex justify-between cursor-pointer w-full items-center gap-3 font-semibold hover:bg-gray-900 rounded-lg py-2 px-3"
+        >
+          <div className="flex items-center gap-3">
+            <img src={coinThumb} alt="btc" className="w-8" />
+            <div>
+              <span className="flex">Buy</span>
+              <p className="text-sm text-gray-400">{coinName}</p>
+            </div>
           </div>
-        </div>
+          <span className="font-light">{'>'}</span>
+        </button>
       </div>
 
       <button className="w-full bg-[#587BFA] hover:bg-[#3b6ef0] transition py-4 rounded-full font-semibold">

@@ -23,9 +23,10 @@ export default function AmountInput({ amount = "", currency, onChange }: AmountI
   }
 
   const scale =
-    localAmount.length >= 5 ? 0.65 :
-    localAmount.length >= 4 ? 0.8 :
-    localAmount.length >= 3 ? 0.9 : 1
+    localAmount.length >= 5 ? 0.6 :
+    localAmount.length >= 4 ? 0.7 :
+    localAmount.length >= 3 ? 0.8 :
+    localAmount.length >= 2 ? 0.9 : 1
 
   return (
     <div className="relative flex flex-col items-center">
@@ -44,7 +45,7 @@ export default function AmountInput({ amount = "", currency, onChange }: AmountI
               className="bg-transparent text-7xl text-white focus:outline-none appearance-none text-right shrink-0"
               style={{
                 minWidth: "1ch",
-                width: `${Math.max(localAmount.length - 1, 1.3)}ch`,
+                width: `${Math.max(localAmount.length - 1, 2)}ch`,
                 letterSpacing: "-0.04em",
               }}
             />
