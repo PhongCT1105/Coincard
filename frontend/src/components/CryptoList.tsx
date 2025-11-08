@@ -7,13 +7,14 @@ interface Coin {
   PRICE: number
   MARKET_CAP: number
   CHANGE: number
+  THUMB_IMAGE: string
   TIMESTAMP: string
 }
 
 interface CryptoListProps {
   showAll: boolean
   setShowAll: (v: boolean) => void
-  onSelectCoin: (coin: {name: string; price: number}) => void
+  onSelectCoin: (coin: {name: string; price: number, thumb_image: string}) => void
 }
 
 export default function CryptoList({ showAll, setShowAll, onSelectCoin }: CryptoListProps) {
@@ -26,6 +27,7 @@ export default function CryptoList({ showAll, setShowAll, onSelectCoin }: Crypto
       try {
         const res = await fetch("http://127.0.0.1:8000/crypto/top-20-coins")
         const json = await res.json()
+        console.log("Fetched crypto data:", json)
         const data: Coin[] = json.data || []
         setCryptos(sortCoins(data, "Market cap"))
       } catch (err) {
@@ -116,7 +118,11 @@ export default function CryptoList({ showAll, setShowAll, onSelectCoin }: Crypto
             className="grid grid-cols-6 items-center py-5 w-full flex-1 hover:bg-neutral-900 transition"
           >
             <div className="flex items-center gap-3 col-span-2">
-              {/* d */}
+              <img 
+                src={coin.THUMB_IMAGE}
+                alt="coin.NAME"
+                className="w-8 h-8 rounded-full"
+              />
               <div>
                 <p className="font-medium">{coin.NAME}</p>
               </div>
@@ -135,8 +141,7 @@ export default function CryptoList({ showAll, setShowAll, onSelectCoin }: Crypto
             <div className="flex justify-end pr-2">
               <button 
                 onClick={() => {
-                  console.log("But button pressed: ", {name: coin.NAME, price: coin.PRICE})
-                  onSelectCoin({name: coin.NAME, price: coin.PRICE})
+                  onSelectCoin({name: coin.NAME, price: coin.PRICE, thumb_image: coin.THUMB_IMAGE})
                 }}
                 className="px-4 py-1 cursor-pointer text-sm rounded-full text-[#587BFA] font-medium transition"
               >

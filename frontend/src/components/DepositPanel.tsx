@@ -46,6 +46,7 @@ export default function DepositPanel({ selectedCoin }) {
   }
 
   const coinName = selectedCoin?.name || "Bitcoin"
+  const coinThumb = selectedCoin?.thumb_image || btc
 
   if (showOrderTypes) {
     return (
@@ -131,7 +132,7 @@ export default function DepositPanel({ selectedCoin }) {
         </div>
 
         <div className="flex items-center gap-3 font-semibold">
-          <img src={btc} alt="btc" className="w-8" />
+          <img src={coinThumb} alt="btc" className="w-8" />
           <div>
             <span>Buy</span>
             <p className="text-sm text-gray-400">{coinName}</p>
