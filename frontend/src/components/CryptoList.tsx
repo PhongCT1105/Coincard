@@ -18,16 +18,15 @@ interface CryptoListProps {
 export default function CryptoList({ showAll, setShowAll }: CryptoListProps) {
   const [cryptos, setCryptos] = useState<Coin[]>([])
   const [loading, setLoading] = useState(true)
+  const [sortBy, setSortBy] = useState<"Market cap" | "Top gainers" | "Top losers">("Market cap")
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await fetch("http://127.0.0.1:8000/crypto/top-20-coins")
         const json = await res.json()
-        const sorted: Coin[] = (json.data || []).sort(
-          (a: Coin, b: Coin) => b.MARKET_CAP - a.MARKET_CAP
-        )
-        setCryptos(sorted)
+        const data: Coin[] = json.data || []
+        setCryptos(sortCoins(data, "Market cap"))
       } catch (err) {
         console.error("Error fetching crypto list:", err)
       } finally {
@@ -37,11 +36,37 @@ export default function CryptoList({ showAll, setShowAll }: CryptoListProps) {
     fetchData()
   }, [])
 
+  const sortCoins = (list: Coin[], criteria: typeof sortBy): Coin[] => {
+    const sorted = [...list]
+    switch (criteria) {
+      case "Market cap":
+        sorted.sort((a, b) => b.MARKET_CAP - a.MARKET_CAP)
+        break
+      case "Top gainers":
+        sorted.sort((a, b) => b.CHANGE - a.CHANGE)
+        break
+      case "Top losers":
+        sorted.sort((a, b) => a.CHANGE - b.CHANGE)
+        break
+    }
+    return sorted
+  }
+
+  const handleSort = (criteria: typeof sortBy) => {
+    setSortBy(criteria)
+    setCryptos((prev) => sortCoins(prev, criteria))
+  }
+
   const formatMarketCap = (v: number): string => {
     if (v >= 1e12) return (v / 1e12).toFixed(2) + "T"
     if (v >= 1e9) return (v / 1e9).toFixed(2) + "B"
     if (v >= 1e6) return (v / 1e6).toFixed(2) + "M"
     return v.toLocaleString()
+  }
+
+  const getCoinIcon = (name: string): string =>{
+    const symbol = name.split(" ")[0].toLowerCase().replace(/[^a-z0-9]/g, "")
+    return `https://cryptoicons.org/api/icon/btc/64`
   }
 
   const displayList = showAll ? cryptos : cryptos.slice(0, 5)
@@ -52,7 +77,7 @@ export default function CryptoList({ showAll, setShowAll }: CryptoListProps) {
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="flex items-center justify-between py-3 border-b border-neutral-800"
+            className="flex items-center justify-between py-3"
           >
             <Skeleton className="w-8 h-8 rounded-full" />
             <Skeleton className="w-32 h-4" />
@@ -62,37 +87,41 @@ export default function CryptoList({ showAll, setShowAll }: CryptoListProps) {
     )
 
   return (
-    <div className="bg-[#0d0d0d] rounded-xl p-6 text-gray-200">
-      {/* Filter bar stays only in Trade view */}
-      {!showAll && (
-        <div className="flex gap-3 mb-6">
-          {["Market cap", "Top gainers", "Top losers"].map((filter) => (
-            <button
-              key={filter}
-              className="px-4 py-2 rounded-full text-sm font-medium bg-neutral-800 hover:bg-[#011D5B] hover:text-[#587BFA] transition"
-            >
-              {filter}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className="grid grid-cols-5 text-gray-500 text-sm pb-2 border-b border-neutral-800">
-        <div className="col-span-2">Name</div>
-        <div>Price</div>
-        <div>Market Cap</div>
-        <div>Change</div>
+    <div className="py-5 text-gray-200">
+      <div className="flex gap-3 mb-6">
+        {["Market cap", "Top gainers", "Top losers"].map((filter) => (
+          <button
+            key={filter}
+            onClick={() => handleSort(filter as typeof sortBy)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+              sortBy === filter
+                ? "bg-white text-black"
+                : "bg-gray-800 text-white hover:bg-gray-900"
+            }`}
+          >
+            {filter}
+          </button>
+        ))}
       </div>
 
-      <div className="divide-y divide-neutral-800">
+      {/* Table Header */}
+      <div className="grid grid-cols-6 text-gray-500 text-sm pb-2">
+        <div className="col-span-2">Name</div>
+        <div>Price</div>
+        <div className="pl-6">Market Cap</div>
+        <div className="pl-12">Change</div>
+      </div>
+
+      {/* Table Rows */}
+      <div className="mt-1">
         {displayList.map((coin) => (
           <div
             key={coin.NAME}
-            className="grid grid-cols-5 items-center py-3 hover:bg-neutral-900 transition"
+            className="grid grid-cols-6 items-center py-5 w-full flex-1 hover:bg-neutral-900 transition"
           >
             <div className="flex items-center gap-3 col-span-2">
               <img
-                src={`/coin-icons/${coin.NAME.toLowerCase().replace(/\s+/g, "-")}.png`}
+                src={getCoinIcon(coin.NAME)}
                 alt={coin.NAME}
                 className="w-8 h-8 rounded-full"
                 onError={(e) => {
@@ -102,20 +131,24 @@ export default function CryptoList({ showAll, setShowAll }: CryptoListProps) {
               />
               <div>
                 <p className="font-medium">{coin.NAME}</p>
-                <p className="text-xs text-gray-500">
-                  {new Date(coin.TIMESTAMP).toLocaleString()}
-                </p>
               </div>
             </div>
+
             <p>${coin.PRICE.toLocaleString()}</p>
-            <p>{formatMarketCap(coin.MARKET_CAP)}</p>
+            <p className="pl-6">{formatMarketCap(coin.MARKET_CAP)}</p>
             <p
-              className={
-                coin.CHANGE >= 0 ? "text-green-400" : "text-red-400"
-              }
+              className={`pl-12 ${
+                coin.CHANGE >= 0 ?  "text-green-400" : "text-red-400"
+              }`}
             >
               {coin.CHANGE.toFixed(2)}%
             </p>
+
+            <div className="flex justify-end pr-2">
+              <button className="px-4 py-1 text-sm rounded-full text-[#587BFA] font-medium transition">
+                Buy
+              </button>
+            </div>
           </div>
         ))}
       </div>
