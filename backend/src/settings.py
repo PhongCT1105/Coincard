@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     app_env: str = "dev"
     api_port: int = 8000
     cors_origins: List[str] = ["http://localhost:3000"]
+    cors_allow_origin_regex: str | None = r"https://.*\.vercel\.app$"
 
     # --- Snowflake (use BaseSettings to read env instead of os.getenv) ---
     SNOWFLAKE_USER: str | None = None
