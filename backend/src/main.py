@@ -2,7 +2,7 @@ import sys
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from src.settings import settings
-from src.routers import health, crypto, portfolio
+from src.routers import health, crypto, portfolio, auth
 import snowflake.connector
 from datetime import datetime
 from src.routers import news
@@ -26,6 +26,7 @@ app.include_router(crypto.router, prefix="/crypto")
 app.include_router(portfolio.router, prefix="/portfolio")
 app.include_router(news.router)
 app.include_router(ask.router)
+app.include_router(auth.router, prefix="/auth")
 
 
 # Root route
