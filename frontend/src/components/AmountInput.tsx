@@ -1,12 +1,19 @@
 import { useState, useEffect } from "react"
+import type { ChangeEvent } from "react"
 
-export default function AmountInput({ amount, currency, onChange }) {
+interface AmountInputProps {
+  amount?: string
+  currency: string
+  onChange: (value: string) => void
+}
+
+export default function AmountInput({ amount = "", currency, onChange }: AmountInputProps) {
   const [localAmount, setLocalAmount] = useState(amount || "")
   const [showError, setShowError] = useState(false)
 
   useEffect(() => setLocalAmount(amount), [amount])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, "")
     if (value.length <= 5) {
       setLocalAmount(value)

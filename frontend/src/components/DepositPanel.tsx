@@ -4,8 +4,18 @@ import { ArrowDownCircle, ArrowUpCircle, Landmark, Wallet, Repeat } from "lucide
 import OrderTypes from "./OrderTypes"
 import AmountInput from "./AmountInput"
 
-export default function DepositPanel({ selectedCoin }) {
-  const [mode, setMode] = useState("buy")
+interface SelectedCoin {
+  name: string
+  price: number
+  thumb_image: string
+}
+
+interface DepositPanelProps {
+  selectedCoin: SelectedCoin | null
+}
+
+export default function DepositPanel({ selectedCoin }: DepositPanelProps) {
+  const [mode, setMode] = useState<"buy" | "sell" | "convert">("buy")
   const [showOrderTypes, setShowOrderTypes] = useState(false)
   const [orderType, setOrderType] = useState("One-time order")
   const [usd, setUsd] = useState("")
