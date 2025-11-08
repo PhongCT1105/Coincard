@@ -65,7 +65,7 @@ export default function DepositPanel({ selectedCoin }) {
   return (
     <div className="bg-[#0d0d0d] rounded-xl pt-4 text-white space-y-6">
       {/* Tabs */}
-      <div className="flex gap-2 bg-neutral-800 p-1 rounded-full w-fit">
+      <div className="flex gap-2 bg-neutral-800 rounded-full w-fit">
         {["buy", "sell", "convert"].map((tab) => (
           <button
             key={tab}
@@ -83,7 +83,7 @@ export default function DepositPanel({ selectedCoin }) {
       <div>
         <button
           onClick={() => setShowOrderTypes(true)}
-          className="w-[60%] items-center bg-neutral-800 px-4 py-3 rounded-3xl text-white font-bold hover:bg-neutral-900 transition"
+          className="w-[60%] items-center bg-neutral-800 px-4 py-2 rounded-3xl text-white font-bold hover:bg-neutral-900 transition"
         >
           <span>{orderType}</span>
           <svg className="ml-3 h-5 w-5 inline" viewBox="0 0 20 20" fill="currentColor">
