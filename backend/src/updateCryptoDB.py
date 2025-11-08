@@ -41,9 +41,11 @@ def fetch_coingecko_data():
             market_cap = coin["market_cap"]
             change = coin["price_change_percentage_24h"]
             thumb_image = coin["image"]
+            symbol = coin["symbol"].upper()
+            volume = coin["total_volume"]
             timestamp = datetime.now()
             
-            processed_data.append((name, price, market_cap, change, thumb_image, timestamp))
+            processed_data.append((name, price, market_cap, change, thumb_image, symbol, volume, timestamp))
 
         print(f"[{datetime.now()}] Successfully fetched {len(processed_data)} records.")
         return processed_data
@@ -70,12 +72,19 @@ def update_snowflake_data(new_data):
                     MARKET_CAP NUMBER(38, 0),
                     CHANGE FLOAT,
                     THUMB_IMAGE VARCHAR(1000),
+                    SYMBOL VARCHAR(50),
+                    VOLUME NUMBER(38, 0),
                     TIMESTAMP TIMESTAMP_NTZ(9)
                 )
                 """)
                 
-                # 2. Insert Python data into the staging table.
-                sql_insert = "INSERT INTO CRYPTO_PRICE_STAGE (NAME, PRICE, MARKET_CAP, CHANGE, THUMB_IMAGE, TIMESTAMP) VALUES (%s, %s, %s, %s, %s, %s)"
+                # 2. Insert Python data into the staging table
+                sql_insert = """
+                INSERT INTO CRYPTO_PRICE_STAGE (
+                    NAME, PRICE, MARKET_CAP, CHANGE, THUMB_IMAGE, SYMBOL, VOLUME, TIMESTAMP
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """
                 cur.executemany(sql_insert, new_data)
                 print(f"[{datetime.now()}] Loaded {cur.rowcount} rows into temporary stage.")
 
@@ -90,14 +99,14 @@ def update_snowflake_data(new_data):
                         target.MARKET_CAP = source.MARKET_CAP,
                         target.CHANGE = source.CHANGE,
                         target.THUMB_IMAGE = source.THUMB_IMAGE,
+                        target.SYMBOL = source.SYMBOL,
+                        target.VOLUME = source.VOLUME,
                         target.TIMESTAMP = source.TIMESTAMP
                 WHEN NOT MATCHED THEN
-                    INSERT (NAME, PRICE, MARKET_CAP, CHANGE, THUMB_IMAGE, TIMESTAMP)
-                    VALUES (source.NAME, source.PRICE, source.MARKET_CAP, source.CHANGE, source.THUMB_IMAGE, source.TIMESTAMP)
+                    INSERT (NAME, PRICE, MARKET_CAP, CHANGE, THUMB_IMAGE, SYMBOL, VOLUME, TIMESTAMP)
+                    VALUES (source.NAME, source.PRICE, source.MARKET_CAP, source.CHANGE, source.THUMB_IMAGE, source.SYMBOL, source.VOLUME, source.TIMESTAMP)
                 """
                 cur.execute(merge_sql)
-                # For MERGE, rowcount is a tuple of (rows_inserted, rows_updated)
-                merge_results = cur.fetchone()
                 print(f"[{datetime.now()}] Snowflake merge complete.")
     except snowflake.connector.Error as e:
         print(f"[{datetime.now()}] ERROR connecting or writing to Snowflake: {e}", file=sys.stderr)
