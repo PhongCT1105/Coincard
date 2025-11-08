@@ -4,8 +4,10 @@ import re
 import json
 import requests
 from typing import List, Dict, Tuple
+from dotenv import load_dotenv
 
 # --------- Config (env) ----------
+load_dotenv()
 XAI_API_KEY = os.getenv("XAI_API_KEY")
 XAI_MODEL   = os.getenv("XAI_MODEL", "grok-3-mini")
 
@@ -116,11 +118,10 @@ def answer_with_grok(
     )
 
     if not XAI_API_KEY:
-        # Minimal, safe fallback (no API key)
         first = sources[0]
         other = f" [{sources[1]['idx']}]" if len(sources) > 1 else ""
         return {
-            "answer": f"Model offline. From the snippets: { _smart_trim(first['snippet'], 220) } [{first['idx']}]"+other,
+            "answer": f"Model offline. From the snippets: {_smart_trim(first['snippet'], 220)} [{first['idx']}]"+other,
             "sources": sources
         }
 
@@ -144,11 +145,38 @@ def answer_with_grok(
         data = resp.json()
         content = (data.get("choices") or [{}])[0].get("message", {}).get("content", "") or ""
         return {"answer": _strip_noise(content).strip(), "sources": sources}
-    except Exception:
-        # Safe extractive fallback
+    except Exception as e:
         first = sources[0]
         other = f" [{sources[1]['idx']}]" if len(sources) > 1 else ""
         return {
-            "answer": f"Couldn’t reach the LLM. Summary: { _smart_trim(first['snippet'], 220) } [{first['idx']}]"+other,
+            "answer": f"Couldn’t reach the LLM ({e}). Summary: {_smart_trim(first['snippet'], 220)} [{first['idx']}]"+other,
             "sources": sources
         }
+
+# --------- Simple local test ---------
+if __name__ == "__main__":
+    from src.stores.selection_store import load_docs, get_latest_run
+
+    token = "BTC"
+    question = "Should I buy BTC in the short term?"
+
+    print(f"🔍 Testing Grok Reasoner with latest cached docs for {token}...\n")
+
+    run_id = get_latest_run(token)
+    if not run_id:
+        print(f"⚠️ No cached docs found for {token}. Please run /news first.")
+        exit()
+
+    docs = load_docs(run_id)
+    if not docs:
+        print(f"⚠️ No documents found in Redis for run_id={run_id}.")
+        exit()
+
+    print(f"✅ Loaded {len(docs)} docs (run_id={run_id})\n")
+
+    result = answer_with_grok(question, docs)
+
+    print("=== Model Answer ===")
+    print(result["answer"])
+    print("\n=== Sources ===")
+    print(json.dumps(result["sources"], indent=2, ensure_ascii=False))
