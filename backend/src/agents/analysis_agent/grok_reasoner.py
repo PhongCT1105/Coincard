@@ -104,7 +104,7 @@ def answer_with_grok(
         return {"answer": "I couldn’t find relevant context.", "sources": []}
 
     sys_prompt = (
-        "You are a careful financial information assistant. "
+        "You are a financial information assistant. "
         "Answer ONLY using the provided context. Do not add numbers you can’t justify from context. "
         "Be concise, risk-aware, and cite with bracket indices like [1], [2]."
     )
