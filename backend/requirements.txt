@@ -1,0 +1,8 @@
+fastapi[standard]>=0.115.0
+pydantic-settings>=2.1.0
+python-dotenv>=1.0.1
+snowflake-connector-python>=3.11.0
+requests>=2.32.3
+xdk>=0.2.0b0
+xai-sdk>=0.4.0
+schedule>=1.2.1
