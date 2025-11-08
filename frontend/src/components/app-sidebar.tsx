@@ -1,9 +1,8 @@
-import { Home, LineChart, History } from "lucide-react"
+import { Home, History } from "lucide-react"
 import { useState } from "react"
 
 const items = [
-  { title: "Home", url: "#", icon: Home },
-  { title: "Trade", url: "#", icon: LineChart },
+  { title: "Home", url: "/home", icon: Home },
   { title: "Transactions", url: "#", icon: History },
 ]
 
