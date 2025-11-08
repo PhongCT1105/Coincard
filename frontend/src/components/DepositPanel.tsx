@@ -79,7 +79,7 @@ export default function DepositPanel({ selectedCoin }: DepositPanelProps) {
         {["buy", "sell", "convert"].map((tab) => (
           <button
             key={tab}
-            onClick={() => setMode(tab)}
+            onClick={() => setMode(tab as "buy" | "sell" | "convert")}
             className={`capitalize px-5 py-2 rounded-full text-sm font-medium transition ${
               mode === tab ? "bg-white text-black" : "text-gray-300 hover:text-white"
             }`}
