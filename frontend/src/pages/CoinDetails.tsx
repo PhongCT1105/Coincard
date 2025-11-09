@@ -46,7 +46,7 @@ export default function CoinDetails() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm text-[#587BFA] hover:text-white transition"
+          className="inline-flex items-center gap-2 font-semibold text-xl text-[#587BFA] hover:text-white transition"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Trade
@@ -67,7 +67,7 @@ export default function CoinDetails() {
   return (
     <div className="p-8 text-white space-y-8">
       <div className="flex items-center justify-between">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-300 hover:text-white transition">
+        <Link href="/" className="inline-flex items-center gap-2 text-xl font-semibold text-white hover:text-white transition">
           <ArrowLeft className="h-4 w-4" />
           Back to Trade
         </Link>
