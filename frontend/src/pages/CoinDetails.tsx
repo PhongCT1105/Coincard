@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { ArrowLeft, Star } from "lucide-react"
 import { CoinSnapshot, persistCoinSnapshot, readCoinSnapshot } from "@/lib/coinSelection"
 import TokenNews from "@/components/TokenNews"
+import PriceChart from "@/components/PriceChart"
 
 const formatCurrency = (value: number) =>
   Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(value)
@@ -53,7 +54,7 @@ export default function CoinDetails() {
   }
 
   const updatedAt = new Date(coin.TIMESTAMP)
-  const tokenKey = coin.SYMBOL || params?.symbol || coin.NAME
+  const tokenKey = (coin.SYMBOL || params?.symbol || coin.NAME || "").toUpperCase()
   const stats = [
     { label: "Market cap", value: formatCompact(coin.MARKET_CAP) },
     { label: "24h volume", value: formatCompact(coin.VOLUME) },
@@ -94,13 +95,10 @@ export default function CoinDetails() {
             </p>
           </div>
         </div>
-
-        <div className="rounded-2xl bg-gradient-to-r from-orange-500/30 via-orange-400/20 to-transparent p-6 border border-orange-400/30">
-          <p className="text-sm text-gray-400 mb-2">Intraday snapshot</p>
-          <div className="h-36 w-full bg-[radial-gradient(circle_at_bottom,#fbbf24_0%,transparent_70%)] rounded-xl opacity-80" />
-          <p className="text-xs text-gray-500 mt-3">Updated {updatedAt.toLocaleString()}</p>
-        </div>
+        <div className="text-xs text-gray-500">Updated {updatedAt.toLocaleString()}</div>
       </section>
+
+      {tokenKey && <PriceChart symbol={tokenKey} name={coin.NAME} />}
 
       <section className="grid gap-6 md:grid-cols-2">
         <div className="bg-neutral-900 rounded-2xl p-6 space-y-4">
