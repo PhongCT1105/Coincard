@@ -14,9 +14,10 @@ type Coin = {
 interface TopbarProps {
   showAll: boolean
   setShowAll: (v: boolean) => void
+  activeSection: string
 }
 
-export default function Topbar({ showAll, setShowAll }: TopbarProps) {
+export default function Topbar({ showAll, setShowAll, activeSection }: TopbarProps) {
   const [search, setSearch] = useState("")
   const [showSearch, setShowSearch] = useState(false)
   const [coins, setCoins] = useState<Coin[]>([])
@@ -71,8 +72,11 @@ export default function Topbar({ showAll, setShowAll }: TopbarProps) {
             <h1 className="text-3xl font-semibold text-white">All Crypto</h1>
           </div>
         ) : (
-          <h1 className="text-3xl font-semibold text-white balance-number">Home</h1>
+          <h1 className="text-3xl font-semibold text-white balance-number">
+            {activeSection === "Transactions" ? "Transactions" : "Home"}
+          </h1>
         )}
+
 
         <div ref={searchAreaRef} className="flex items-center gap-4 relative">
           <input

@@ -70,7 +70,6 @@ export default function App() {
       <PrivateRoute path="/">
         <SidebarProvider>
           <div className="flex h-screen w-screen bg-neutral-950 text-white overflow-hidden">
-            <AppSidebar />
             <main className="flex-1 h-full overflow-auto">
               <Home />
             </main>
