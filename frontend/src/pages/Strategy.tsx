@@ -99,6 +99,12 @@ export default function Strategy() {
     }
   }, [])
 
+  const truncate = (text?: string, limit = 160) => {
+    if (!text) return ""
+    if (text.length <= limit) return text
+    return text.slice(0, limit).trimEnd() + "…"
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-[#050505] text-white p-10 space-y-10">
       <header className="space-y-4">
@@ -166,30 +172,42 @@ export default function Strategy() {
             </div>
             {plannerError && <p className="text-sm text-red-400">{plannerError}</p>}
             {plannerResult && (
-              <div className="rounded-2xl border border-neutral-800 p-4 space-y-3 text-sm">
+              <div className="rounded-3xl border border-neutral-800 p-4 space-y-3 text-sm bg-neutral-950">
                 <p className="text-gray-400">
-                  <strong>Final answer:</strong> {plannerResult.final_answer}
+                  <strong>Final answer:</strong> {plannerResult.final_answer || "Awaiting result…"}
                 </p>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {plannerResult.steps?.map((step: any) => (
-                    <div key={`${step.step}-${step.action}`} className="border-b border-neutral-800 pb-2">
-                      <p className="text-xs text-gray-500 flex items-center justify-between">
-                        <span>Step {step.step}: {step.action}</span>
+                    <div
+                      key={`${step.step}-${step.action}`}
+                      className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-4 space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-white">
+                          Step {step.step}: {step.action}
+                        </p>
                         {typeof step.score === "number" && (
-                          <span className="text-[11px] text-gray-500">score {(step.score).toFixed(2)}</span>
+                          <span className="text-[11px] text-gray-400">
+                            confidence {(step.score || 0).toFixed(2)}
+                          </span>
                         )}
-                      </p>
-                      <p className="text-gray-300">{step.thought}</p>
-                      {Array.isArray(step.candidate_tools) && (
-                        <ul className="text-xs text-gray-500 flex flex-wrap gap-2 mt-1">
+                      </div>
+                      {Array.isArray(step.candidate_tools) && step.candidate_tools.length > 0 && (
+                        <ul className="text-xs text-gray-400 flex flex-wrap gap-2">
                           {step.candidate_tools.map((c: any) => (
-                            <li key={c.name} className="px-2 py-1 rounded-full border border-neutral-700">
+                            <li
+                              key={`${step.step}-${c.name}`}
+                              className="px-3 py-1 rounded-full border border-neutral-700 bg-neutral-950/60"
+                            >
                               {c.name}: {(Number(c.score) || 0).toFixed(2)}
                             </li>
                           ))}
                         </ul>
                       )}
-                      <p className="text-gray-400">{step.result}</p>
+                      <p className="text-sm text-gray-300">{truncate(step.thought, 180)}</p>
+                      <p className="text-sm text-gray-400 border-t border-neutral-800 pt-2">
+                        {truncate(step.result, 220)}
+                      </p>
                     </div>
                   ))}
                 </div>
