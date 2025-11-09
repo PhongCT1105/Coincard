@@ -12,6 +12,15 @@ from src.agents.behavioral_agent.behavioral_agent import (
     rank_coins_by_similarity,
 )
 
+def _fallback_trade_plan(message: str, token: Optional[str]) -> Dict[str, Any]:
+    return {
+        "side": "hold",
+        "asset": token or "N/A",
+        "amount": 0,
+        "confidence": 0.0,
+        "notes": message or "No actionable trade recommendation was produced.",
+    }
+
 TOOLS_DESCRIPTION = """
 Available tools:
 1) news_agent(token) -> Fetches latest social/news posts for the token. Returns docs.
@@ -192,10 +201,14 @@ def _planner_loop(
 
         if action == "final_answer":
             message = action_obj.get("message") or thought or "Completed."
+            trade_plan = action_obj.get("trade_plan")
+            if not isinstance(trade_plan, dict):
+                trade_plan = _fallback_trade_plan(message, token)
             yield {
                 "type": "final",
                 "goal": goal,
                 "final_answer": message,
+                "trade_plan": trade_plan,
                 "context": {
                     "analysis": state.get("analysis"),
                     "persona": state.get("persona"),
@@ -221,10 +234,12 @@ def _planner_loop(
         if state.get("analysis")
         else "Plan ended without a final answer."
     )
+    fallback_plan = _fallback_trade_plan(final_answer, token)
     yield {
         "type": "final",
         "goal": goal,
         "final_answer": final_answer,
+        "trade_plan": fallback_plan,
         "context": {
             "analysis": state.get("analysis"),
             "persona": state.get("persona"),
@@ -250,6 +265,11 @@ def run_orchestration(
     if not final_payload:
         raise RuntimeError("Planner failed to produce a final answer.")
     final_payload["steps"] = steps
+    if not final_payload.get("trade_plan"):
+        final_payload["trade_plan"] = _fallback_trade_plan(
+            final_payload.get("final_answer", ""),
+            token,
+        )
     return final_payload
 
 

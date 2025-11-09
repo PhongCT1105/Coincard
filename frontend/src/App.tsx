@@ -53,6 +53,7 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import CoinDetails from "./pages/CoinDetails";
 import Strategy from "./pages/Strategy";
+import LiveTrading from "./pages/LiveTrading";
 import TransactionList from "./components/TransactionList";
 
 const PrivateRoute = ({ children, path }: { children: React.ReactNode; path: string }) => {
@@ -88,6 +89,12 @@ export default function App() {
       <PrivateRoute path="/strategy">
         <DashboardShell>
           <Strategy />
+        </DashboardShell>
+      </PrivateRoute>
+
+      <PrivateRoute path="/live">
+        <DashboardShell>
+          <LiveTrading />
         </DashboardShell>
       </PrivateRoute>
 

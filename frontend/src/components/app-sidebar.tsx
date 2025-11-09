@@ -1,12 +1,12 @@
 "use client"
 import { Home, LineChart, History, Workflow } from "lucide-react"
-import { useState } from "react"
 import { useMemo } from "react"
 import { useLocation } from "wouter"
 import AnomalyAlerts from "@/components/AnomalyAlerts";
 
 const items = [
   { title: "Home", url: "/", icon: Home },
+  { title: "Live Trading", url: "/live", icon: LineChart },
   { title: "Transactions", url: "/transactions", icon: History },
   { title: "Strategic Lab", url: "/strategy", icon: Workflow },
 ]
