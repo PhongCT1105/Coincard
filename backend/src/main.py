@@ -2,7 +2,7 @@ import sys
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from src.settings import settings
-from src.routers import health, crypto, portfolio, auth
+from src.routers import health, crypto, portfolio, auth, anomaly
 import snowflake.connector
 from datetime import datetime
 from src.routers import news
@@ -29,6 +29,7 @@ app.include_router(news.router)
 app.include_router(ask.router)
 app.include_router(chat.router)
 app.include_router(auth.router, prefix="/auth")
+app.include_router(anomaly.router, prefix="/anomaly")
 
 
 # Root route
