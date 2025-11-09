@@ -52,6 +52,7 @@ import Home from "./pages/Home";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import CoinDetails from "./pages/CoinDetails";
+import Strategy from "./pages/Strategy";
 
 const PrivateRoute = ({ children, path }: { children: React.ReactNode; path: string }) => {
   const { user } = useAuth();
@@ -80,6 +81,12 @@ export default function App() {
       <PrivateRoute path="/">
         <DashboardShell>
           <Home />
+        </DashboardShell>
+      </PrivateRoute>
+
+      <PrivateRoute path="/strategy">
+        <DashboardShell>
+          <Strategy />
         </DashboardShell>
       </PrivateRoute>
 

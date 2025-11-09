@@ -8,6 +8,8 @@ from datetime import datetime
 from src.routers import news
 from src.routers import ask
 from src.routers import chat
+from src.routers import behavioral
+from src.routers import orchestrator
 
 # Create FastAPI app
 app = FastAPI(title="Replica Coinbase API", version="0.1.0")
@@ -28,6 +30,8 @@ app.include_router(portfolio.router, prefix="/portfolio")
 app.include_router(news.router)
 app.include_router(ask.router)
 app.include_router(chat.router)
+app.include_router(behavioral.router)
+app.include_router(orchestrator.router)
 app.include_router(auth.router, prefix="/auth")
 app.include_router(anomaly.router, prefix="/anomaly")
 

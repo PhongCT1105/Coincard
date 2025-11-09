@@ -92,7 +92,7 @@ def ingest_news(token: str, top_k: int = 6) -> List[Dict[str, str]]:
     neg_words = "-pump -signal -copytrading -copy -giveaway -airdrop -scalp -memecoin"
     query = f"({token} OR #{token} OR ${token}) lang:en has:links -is:retweet -is:quote -is:reply {neg_words}"
 
-    resp = client.posts.search_recent(query=query, max_results=10)
+    resp = client.posts.search_recent(query=query, max_results=100)
     if not getattr(resp, "data", None):
         return []
 
