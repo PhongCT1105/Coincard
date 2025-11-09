@@ -1,28 +1,6 @@
 import { useState } from "react"
-import { Check, Sparkles, Zap } from "lucide-react"
-
-const agents = [
-  {
-    name: "News Agent",
-    description: "Fetches latest token sentiment from X and enriches with Grok titles + sentiment.",
-    outputs: ["Docs cache", "Per-post sentiment"],
-  },
-  {
-    name: "Reasoning Agent",
-    description: "Grok analysis with dynamic context packing for precise answers.",
-    outputs: ["Structured answer", "Source citations"],
-  },
-  {
-    name: "Behavioral Agent",
-    description: "Studies transaction history to infer trader persona and style-matched coins.",
-    outputs: ["Persona summary", "Ranked tokens"],
-  },
-  {
-    name: "Market Data",
-    description: "CoinGecko historical prices, sparkline-ready data, and volatility snapshots.",
-    outputs: ["Time-series data", "Volatility bands"],
-  },
-]
+import { Sparkles, Zap, Loader2 } from "lucide-react"
+import { useAuth } from "@/context/AuthContext"
 
 const tools = [
   {
@@ -44,13 +22,68 @@ const tools = [
 ]
 
 export default function Strategy() {
-  const [selectedAgents, setSelectedAgents] = useState<string[]>([])
   const [autoOrchestrate, setAutoOrchestrate] = useState(true)
+  const [goal, setGoal] = useState("Build a short-term plan for BTC using news + sentiment.")
+  const [token, setToken] = useState("BTC")
+  const { user } = useAuth()
+  const [plannerResult, setPlannerResult] = useState<any | null>(null)
+  const [plannerLoading, setPlannerLoading] = useState(false)
+  const [plannerError, setPlannerError] = useState<string | null>(null)
 
-  const toggleAgent = (name: string) => {
-    setSelectedAgents((prev) =>
-      prev.includes(name) ? prev.filter((a) => a !== name) : [...prev, name]
-    )
+  const runPlanner = async () => {
+    if (!goal.trim()) return
+    setPlannerLoading(true)
+    setPlannerError(null)
+    setPlannerResult({ steps: [], final_answer: "" })
+    try {
+      const res = await fetch("http://127.0.0.1:8000/orchestrate/plan-stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          goal,
+          token,
+          user_id: user?.user_id || "U01",
+        }),
+      })
+      if (!res.ok || !res.body) {
+        throw new Error(`Planner failed with ${res.status}`)
+      }
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ""
+      while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split("\n")
+        buffer = lines.pop() || ""
+        for (const line of lines) {
+          if (!line.trim()) continue
+          try {
+            const event = JSON.parse(line)
+            if (event.type === "step") {
+              setPlannerResult((prev: any) => ({
+                ...prev,
+                steps: [...(prev?.steps || []), event.data],
+              }))
+            } else if (event.type === "final") {
+              setPlannerResult((prev: any) => ({
+                ...prev,
+                final_answer: event.final_answer,
+                context: event.context,
+              }))
+            }
+          } catch (e) {
+            console.error("Failed to parse planner chunk", e, line)
+          }
+        }
+      }
+    } catch (err) {
+      setPlannerError(err instanceof Error ? err.message : "Planner failed.")
+      setPlannerResult(null)
+    } finally {
+      setPlannerLoading(false)
+    }
   }
 
   return (
@@ -81,73 +114,74 @@ export default function Strategy() {
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-neutral-900 rounded-3xl p-6 border border-neutral-800">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Available agents</h2>
-              <span className="text-sm text-gray-500">{selectedAgents.length} selected</span>
-            </div>
-            <div className="space-y-4">
-              {agents.map((agent) => (
-                <button
-                  key={agent.name}
-                  onClick={() => toggleAgent(agent.name)}
-                  className={`w-full text-left rounded-2xl p-4 border transition ${
-                    selectedAgents.includes(agent.name)
-                      ? "border-[#587BFA] bg-[#0f1b3a]"
-                      : "border-neutral-800 bg-neutral-950 hover:border-neutral-700"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold">{agent.name}</p>
-                      <p className="text-sm text-gray-400">{agent.description}</p>
-                    </div>
-                    {selectedAgents.includes(agent.name) && (
-                      <Check className="w-5 h-5 text-[#587BFA]" />
-                    )}
-                  </div>
-                  <ul className="text-xs text-gray-500 mt-3 flex gap-2 flex-wrap">
-                    {agent.outputs.map((output) => (
-                      <li
-                        key={output}
-                        className="px-3 py-1 rounded-full border border-neutral-700"
-                      >
-                        {output}
-                      </li>
-                    ))}
-                  </ul>
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="bg-neutral-900 rounded-3xl p-6 border border-neutral-800 space-y-4">
-            <h2 className="text-xl font-semibold">Manual playbook</h2>
-            <p className="text-sm text-gray-400">
-              Queue agents in the order you want to run them. Once you hit launch, the system
-              executes each tool with the shared context.
-            </p>
-            <div className="border border-dashed border-neutral-700 rounded-2xl p-4 text-sm text-gray-500">
-              {selectedAgents.length === 0
-                ? "No agents selected. Pick at least one to build a playbook."
-                : selectedAgents.map((agent, idx) => (
-                    <div
-                      key={agent}
-                      className="flex items-center gap-3 py-2 text-gray-300 border-b border-neutral-800 last:border-0"
-                    >
-                      <span className="w-6 h-6 flex items-center justify-center rounded-full bg-neutral-800 text-xs">
-                        {idx + 1}
-                      </span>
-                      <span>{agent}</span>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">LLM orchestration</h2>
+              <button
+                onClick={runPlanner}
+                disabled={plannerLoading}
+                className="px-4 py-2 rounded-2xl bg-white text-black text-sm font-semibold flex items-center gap-2 disabled:bg-neutral-800 disabled:text-gray-500"
+              >
+                {plannerLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                Run plan
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2 space-y-2">
+                <label className="text-xs uppercase tracking-wide text-gray-500">User goal</label>
+                <textarea
+                  value={goal}
+                  onChange={(e) => setGoal(e.target.value)}
+                  rows={3}
+                  className="w-full rounded-2xl bg-neutral-950 border border-neutral-800 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#587BFA]"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs uppercase tracking-wide text-gray-500">Token</label>
+                <input
+                  value={token}
+                  onChange={(e) => setToken(e.target.value.toUpperCase())}
+                  className="w-full rounded-2xl bg-neutral-950 border border-neutral-800 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#587BFA]"
+                />
+                <label className="text-xs uppercase tracking-wide text-gray-500">User ID</label>
+                <input
+                  value={user?.user_id || "U01"}
+                  disabled
+                  className="w-full rounded-2xl bg-neutral-950 border border-neutral-800 px-4 py-3 text-sm text-gray-400"
+                />
+              </div>
+            </div>
+            {plannerError && <p className="text-sm text-red-400">{plannerError}</p>}
+            {plannerResult && (
+              <div className="rounded-2xl border border-neutral-800 p-4 space-y-3 text-sm">
+                <p className="text-gray-400">
+                  <strong>Final answer:</strong> {plannerResult.final_answer}
+                </p>
+                <div className="space-y-2">
+                  {plannerResult.steps?.map((step: any) => (
+                    <div key={`${step.step}-${step.action}`} className="border-b border-neutral-800 pb-2">
+                      <p className="text-xs text-gray-500 flex items-center justify-between">
+                        <span>Step {step.step}: {step.action}</span>
+                        {typeof step.score === "number" && (
+                          <span className="text-[11px] text-gray-500">score {(step.score).toFixed(2)}</span>
+                        )}
+                      </p>
+                      <p className="text-gray-300">{step.thought}</p>
+                      {Array.isArray(step.candidate_tools) && (
+                        <ul className="text-xs text-gray-500 flex flex-wrap gap-2 mt-1">
+                          {step.candidate_tools.map((c: any) => (
+                            <li key={c.name} className="px-2 py-1 rounded-full border border-neutral-700">
+                              {c.name}: {(Number(c.score) || 0).toFixed(2)}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <p className="text-gray-400">{step.result}</p>
                     </div>
                   ))}
-            </div>
-            <button
-              className="px-4 py-3 rounded-2xl bg-white text-black font-semibold disabled:bg-neutral-800 disabled:text-gray-500 transition"
-              disabled={selectedAgents.length === 0}
-            >
-              Launch selected flow
-            </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
