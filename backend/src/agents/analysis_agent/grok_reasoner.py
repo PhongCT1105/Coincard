@@ -155,25 +155,29 @@ def answer_with_grok(
 
 # --------- Simple local test ---------
 if __name__ == "__main__":
-    from src.stores.selection_store import load_docs, get_latest_run
+    question = "What is the sentiment of the latest BTC accumulation news?"
+    docs = [
+        {
+            "id": "sample-1",
+            "title": "BTC whale accumulation tops $500M",
+            "context": (
+                "On-chain data from multiple analytics firms show BTC whales have accumulated "
+                "more than $500M in the past seven days despite choppy price action."
+            ),
+            "link": "https://example.com/btc"
+        },
+        {
+            "id": "sample-2",
+            "title": "ETF flows slow down",
+            "context": (
+                "Spot ETF inflows cooled this week, but analysts say the pullback looks like "
+                "consolidation after a strong July rally."
+            ),
+            "link": "https://example.com/etf"
+        },
+    ]
 
-    token = "BTC"
-    question = "Should I buy BTC in the short term?"
-
-    print(f"🔍 Testing Grok Reasoner with latest cached docs for {token}...\n")
-
-    run_id = get_latest_run(token)
-    if not run_id:
-        print(f"⚠️ No cached docs found for {token}. Please run /news first.")
-        exit()
-
-    docs = load_docs(run_id)
-    if not docs:
-        print(f"⚠️ No documents found in Redis for run_id={run_id}.")
-        exit()
-
-    print(f"✅ Loaded {len(docs)} docs (run_id={run_id})\n")
-
+    print("🔍 Testing Grok Reasoner with inline sample docs...\n")
     result = answer_with_grok(question, docs)
 
     print("=== Model Answer ===")
