@@ -1,6 +1,8 @@
 "use client"
 import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useLocation } from "wouter"
+import { persistCoinSnapshot } from "@/lib/coinSelection"
 
 interface Coin {
   NAME: string
@@ -23,6 +25,7 @@ export default function CryptoList({ showAll, setShowAll, onSelectCoin }: Crypto
   const [cryptos, setCryptos] = useState<Coin[]>([])
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState<"Market cap" | "Top gainers" | "Top losers">("Market cap")
+  const [, navigate] = useLocation()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,6 +70,18 @@ export default function CryptoList({ showAll, setShowAll, onSelectCoin }: Crypto
     if (v >= 1e6) return (v / 1e6).toFixed(2) + "M"
     if (v >= 1e3) return (v / 1e3).toFixed(2) + "K"
     return v.toString()
+  }
+
+  const navigateToDetails = (coin: Coin) => {
+    persistCoinSnapshot(coin)
+    onSelectCoin({
+      name: coin.NAME,
+      price: coin.PRICE,
+      thumb_image: coin.THUMB_IMAGE,
+      symbol: coin.SYMBOL,
+    })
+    const slug = encodeURIComponent(coin.SYMBOL || coin.NAME)
+    navigate(`/coin/${slug}`, { state: coin })
   }
 
   const displayList = showAll ? cryptos : cryptos.slice(0, 5)
@@ -117,7 +132,16 @@ export default function CryptoList({ showAll, setShowAll, onSelectCoin }: Crypto
         {displayList.map((coin) => (
           <div
             key={coin.NAME}
-            className="grid grid-cols-7 items-center py-5 w-full flex-1 hover:bg-neutral-900 transition"
+            role="button"
+            tabIndex={0}
+            onClick={() => navigateToDetails(coin)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault()
+                navigateToDetails(coin)
+              }
+            }}
+            className="grid grid-cols-7 items-center py-5 w-full flex-1 hover:bg-neutral-900 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#587BFA]"
           >
             {/* Name */}
             <div className="flex items-center gap-3 col-span-2">
@@ -153,14 +177,15 @@ export default function CryptoList({ showAll, setShowAll, onSelectCoin }: Crypto
             {/* Buy Button */}
             <div className="text-left pr-2">
               <button
-                onClick={() =>
+                onClick={(event) => {
+                  event.stopPropagation()
                   onSelectCoin({
                     name: coin.NAME,
                     price: coin.PRICE,
                     thumb_image: coin.THUMB_IMAGE,
                     symbol: coin.SYMBOL,
                   })
-                }
+                }}
                 className="px-4 py-1 text-sm rounded-full text-[#587BFA] font-medium cursor-pointer hover:text-[#3b6ef0] transition"
               >
                 Buy

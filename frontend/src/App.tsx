@@ -50,7 +50,8 @@ import { AppSidebar } from "@/components/app-sidebar";
 
 import Home from "./pages/Home";
 import SignIn from "./pages/SignIn";
-import SignUp from "./pages/SignUp"; // We'll create this next
+import SignUp from "./pages/SignUp";
+import CoinDetails from "./pages/CoinDetails";
 
 const PrivateRoute = ({ children, path }: { children: React.ReactNode; path: string }) => {
   const { user } = useAuth();
@@ -58,6 +59,15 @@ const PrivateRoute = ({ children, path }: { children: React.ReactNode; path: str
     <Route path={path}>{user ? children : <Redirect to="/signin" />}</Route>
   );
 };
+
+const DashboardShell = ({ children }: { children: React.ReactNode }) => (
+  <SidebarProvider>
+    <div className="flex h-screen w-screen bg-neutral-950 text-white overflow-hidden">
+      <AppSidebar />
+      <main className="flex-1 h-full overflow-auto">{children}</main>
+    </div>
+  </SidebarProvider>
+);
 
 export default function App() {
   const { user } = useAuth();
@@ -68,14 +78,15 @@ export default function App() {
       <Route path="/signup">{user ? <Redirect to="/" /> : <SignUp />}</Route>
 
       <PrivateRoute path="/">
-        <SidebarProvider>
-          <div className="flex h-screen w-screen bg-neutral-950 text-white overflow-hidden">
-            <AppSidebar />
-            <main className="flex-1 h-full overflow-auto">
-              <Home />
-            </main>
-          </div>
-        </SidebarProvider>
+        <DashboardShell>
+          <Home />
+        </DashboardShell>
+      </PrivateRoute>
+
+      <PrivateRoute path="/coin/:symbol">
+        <DashboardShell>
+          <CoinDetails />
+        </DashboardShell>
       </PrivateRoute>
 
       <Route>

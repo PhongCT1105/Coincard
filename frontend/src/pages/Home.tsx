@@ -5,12 +5,13 @@ import CryptoList from "@/components/CryptoList"
 import DepositPanel from "@/components/DepositPanel"
 import { useState } from "react"
 
+type SelectedCoin = { name: string; price: number; thumb_image: string; symbol: string }
+
 export default function Home() {
   const [showAll, setShowAll] = useState(false)
-  const [selectedCoin, setSelectedCoin] = useState<{ name: string; price: number; thumb_image: string } | null>(null)
+  const [selectedCoin, setSelectedCoin] = useState<SelectedCoin | null>(null)
 
-  const handleSelectCoin = (coin: { name: string; price: number; thumb_image: string }) => {
-    console.log("Selected coin:", coin)
+  const handleSelectCoin = (coin: SelectedCoin) => {
     setSelectedCoin(coin)
   }
 
@@ -30,10 +31,7 @@ export default function Home() {
         </div>
 
         <div className="w-[31%]">
-          <DepositPanel
-            selectedCoin={selectedCoin}
-            onSelectCoin={handleSelectCoin}  
-          />
+          <DepositPanel selectedCoin={selectedCoin} />
         </div>
       </div>
     </div>

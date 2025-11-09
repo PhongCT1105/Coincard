@@ -30,6 +30,15 @@ def _approx_tokens(s: str) -> int:
     # Very rough: ~4 chars ≈ 1 token; good enough for budgeting
     return max(1, len((s or "")) // 4)
 
+def _format_history(history: List[Dict]) -> str:
+    if not history:
+        return ""
+    lines = []
+    for msg in history:
+        role = "User" if msg.get("role") == "user" else "Assistant"
+        lines.append(f"{role}: {_strip_noise(msg.get('content', ''))}")
+    return "\n".join(lines)
+
 # --------- Dynamic context sizing ----------
 def _choose_doc_char_budget(
     docs: List[Dict],
@@ -153,27 +162,107 @@ def answer_with_grok(
             "sources": sources
         }
 
+def chat_with_grok(
+    docs: List[Dict],
+    chat_history: List[Dict],
+    token_budget_tokens: int = 3800,
+    model_answer_tokens: int = 500,
+) -> Dict:
+    """
+    Conversational flow that reuses cached docs and prior turns.
+    chat_history should already include the most recent user turn.
+    """
+    ctx, sources, _ = _build_context_dynamic(
+        docs,
+        total_ctx_tokens=token_budget_tokens
+    )
+    if not sources:
+        return {"answer": "I couldn’t find relevant context.", "sources": []}
+
+    latest_user = None
+    for msg in reversed(chat_history):
+        if msg.get("role") == "user":
+            latest_user = msg
+            break
+    if not latest_user:
+        raise ValueError("chat_history must include at least one user message.")
+
+    history_block = _format_history(chat_history)
+
+    sys_prompt = (
+        "You are a financial research analyst. Use only the supplied news context when answering, "
+        "keep a professional tone, and cite sources like [1], [2]."
+    )
+    user_prompt = (
+        f"Conversation so far:\n{history_block}\n\n"
+        f"Market context (numbered sources):\n{ctx}\n\n"
+        "Instructions:\n"
+        "1) Respond to the latest user request while staying consistent with the conversation history.\n"
+        "2) Use the provided sources for facts; include inline citations.\n"
+        "3) Summarize risks or missing data if the context does not cover the request."
+    )
+
+    if not XAI_API_KEY:
+        first = sources[0]
+        snippet = _smart_trim(first["snippet"], 180)
+        return {
+            "answer": f"Model offline. Latest question: {latest_user['content']}\nSummary: {snippet} [{first['idx']}]",
+            "sources": sources,
+        }
+
+    try:
+        resp = requests.post(
+            "https://api.x.ai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {XAI_API_KEY}", "Content-Type": "application/json"},
+            json={
+                "model": XAI_MODEL,
+                "messages": [
+                    {"role": "system", "content": sys_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "temperature": 0.25,
+                "max_tokens": model_answer_tokens,
+            },
+            timeout=20,
+        )
+        if resp.status_code != 200:
+            raise RuntimeError(f"xAI status {resp.status_code}: {resp.text}")
+        data = resp.json()
+        content = (data.get("choices") or [{}])[0].get("message", {}).get("content", "") or ""
+        return {"answer": _strip_noise(content).strip(), "sources": sources}
+    except Exception as e:
+        first = sources[0]
+        other = f" [{sources[1]['idx']}]" if len(sources) > 1 else ""
+        return {
+            "answer": f"Couldn’t reach the LLM ({e}). Latest snippet: {_smart_trim(first['snippet'], 200)} [{first['idx']}]"+other,
+            "sources": sources
+        }
+
 # --------- Simple local test ---------
 if __name__ == "__main__":
-    from src.stores.selection_store import load_docs, get_latest_run
+    question = "What is the sentiment of the latest BTC accumulation news?"
+    docs = [
+        {
+            "id": "sample-1",
+            "title": "BTC whale accumulation tops $500M",
+            "context": (
+                "On-chain data from multiple analytics firms show BTC whales have accumulated "
+                "more than $500M in the past seven days despite choppy price action."
+            ),
+            "link": "https://example.com/btc"
+        },
+        {
+            "id": "sample-2",
+            "title": "ETF flows slow down",
+            "context": (
+                "Spot ETF inflows cooled this week, but analysts say the pullback looks like "
+                "consolidation after a strong July rally."
+            ),
+            "link": "https://example.com/etf"
+        },
+    ]
 
-    token = "BTC"
-    question = "Should I buy BTC in the short term?"
-
-    print(f"🔍 Testing Grok Reasoner with latest cached docs for {token}...\n")
-
-    run_id = get_latest_run(token)
-    if not run_id:
-        print(f"⚠️ No cached docs found for {token}. Please run /news first.")
-        exit()
-
-    docs = load_docs(run_id)
-    if not docs:
-        print(f"⚠️ No documents found in Redis for run_id={run_id}.")
-        exit()
-
-    print(f"✅ Loaded {len(docs)} docs (run_id={run_id})\n")
-
+    print("🔍 Testing Grok Reasoner with inline sample docs...\n")
     result = answer_with_grok(question, docs)
 
     print("=== Model Answer ===")
