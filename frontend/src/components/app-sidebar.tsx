@@ -1,5 +1,6 @@
 import { Home, LineChart, History } from "lucide-react"
 import { useState } from "react"
+import AnomalyAlerts from "@/components/AnomalyAlerts";
 
 const items = [
   { title: "Home", url: "#", icon: Home },
@@ -50,6 +51,9 @@ export function AppSidebar() {
             })}
           </ul>
         </nav>
+        <div className="w-full px-4 mt-6">
+          <AnomalyAlerts />
+        </div>
       </div>
     </div>
   )

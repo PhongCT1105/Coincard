@@ -170,11 +170,12 @@ def get_top_coin(user_id: str, db: snowflake.connector.SnowflakeConnection = Dep
             top_coin = cur.fetchone()
             if not top_coin:
                 return {"message": "No matched top coin found in portfolio."}
-            return {
-                "user_id": top_coin["USER_ID"],
-                "username": top_coin["USERNAME"],
-                "top_coin": top_coin["TOP_COIN"]
-            }
+            # return {
+            #     "user_id": top_coin["USER_ID"],
+            #     "username": top_coin["USERNAME"],
+            #     "top_coin": top_coin["TOP_COIN"]
+            # }
+            return {"top_coin": top_coin, "fetched_at": datetime.now().isoformat()}
     except snowflake.connector.Error as e:
         print(f"[{datetime.now()}] ERROR in get_top_coin: {e}", file=sys.stderr)
         raise HTTPException(status_code=500, detail="Database error")
