@@ -71,7 +71,7 @@ export default function Topbar({ showAll, setShowAll }: TopbarProps) {
             <h1 className="text-3xl font-semibold text-white">All Crypto</h1>
           </div>
         ) : (
-          <h1 className="text-3xl font-semibold text-white">Trade</h1>
+          <h1 className="text-3xl font-semibold text-white balance-number">Home</h1>
         )}
 
         <div ref={searchAreaRef} className="flex items-center gap-4 relative">

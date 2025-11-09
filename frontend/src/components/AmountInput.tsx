@@ -22,8 +22,8 @@ export default function AmountInput({ amount, currency, onChange }) {
     localAmount.length >= 2 ? 0.9 : 1
 
   return (
-    <div className="relative flex flex-col items-center">
-      <div className="relative h-[100px] w-full flex items-center justify-center overflow-hidden">
+    <div className="relative flex flex-col items-center overflow-visible">
+      <div className="relative h-[100px] w-full flex items-center justify-center overflow-visible">
         <div
           className="flex items-center justify-center whitespace-nowrap transition-transform duration-200 origin-center"
           style={{ transform: `scale(${scale})` }}

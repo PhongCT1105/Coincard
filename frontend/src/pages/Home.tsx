@@ -9,6 +9,9 @@ import { useState } from "react"
 export default function Home() {
   const [showAll, setShowAll] = useState(false)
   const [selectedCoin, setSelectedCoin] = useState<{ name: string; price: number; thumb_image: string } | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const handleBalanceRefresh = () => setRefreshKey((prev) => prev + 1)
 
   const handleSelectCoin = (coin: { name: string; price: number; thumb_image: string }) => {
     setSelectedCoin(coin)
@@ -21,9 +24,8 @@ export default function Home() {
       </div>
 
       <div className="flex flex-1 px-10 gap-8">
-        {/* LEFT 69% */}
         <div className="w-[69%] border-r border-gray-800 pr-8">
-          <BalanceCard />
+          {!showAll && <BalanceCard key={refreshKey} />}
           <CryptoList
             showAll={showAll}
             setShowAll={setShowAll}
@@ -31,11 +33,12 @@ export default function Home() {
           />
         </div>
 
-        {/* RIGHT 31% */}
+
         <div className="w-[31%]">
           <DepositPanel
             selectedCoin={selectedCoin}
             onSelectCoin={handleSelectCoin}
+            onBalanceUpdate={handleBalanceRefresh}
           />
         </div>
       </div>
