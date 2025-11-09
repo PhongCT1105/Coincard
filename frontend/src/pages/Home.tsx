@@ -1,8 +1,9 @@
-
+// Home.tsx
 "use client"
 import Topbar from "@/components/Topbar"
 import CryptoList from "@/components/CryptoList"
 import DepositPanel from "@/components/DepositPanel"
+import BalanceCard from "@/components/BalanceCard"
 import { useState } from "react"
 
 export default function Home() {
@@ -10,7 +11,6 @@ export default function Home() {
   const [selectedCoin, setSelectedCoin] = useState<{ name: string; price: number; thumb_image: string } | null>(null)
 
   const handleSelectCoin = (coin: { name: string; price: number; thumb_image: string }) => {
-    console.log("Selected coin:", coin)
     setSelectedCoin(coin)
   }
 
@@ -21,18 +21,21 @@ export default function Home() {
       </div>
 
       <div className="flex flex-1 px-10 gap-8">
+        {/* LEFT 69% */}
         <div className="w-[69%] border-r border-gray-800 pr-8">
+          <BalanceCard />
           <CryptoList
             showAll={showAll}
             setShowAll={setShowAll}
-            onSelectCoin={handleSelectCoin}  
+            onSelectCoin={handleSelectCoin}
           />
         </div>
 
+        {/* RIGHT 31% */}
         <div className="w-[31%]">
           <DepositPanel
             selectedCoin={selectedCoin}
-            onSelectCoin={handleSelectCoin}  
+            onSelectCoin={handleSelectCoin}
           />
         </div>
       </div>

@@ -127,3 +127,14 @@ html, body, #root {
     @apply bg-background text-foreground;
   }
 }
+
+@font-face {
+  font-family: 'Coinbase Sans'; 
+  src: url('/frontend/public/fonts/Coinbase-Sans/Coinbase_Sans-Medium-web-1.32.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+
+.balance-number {
+  font-family: 'Coinbase Sans', sans-serif;
+}
