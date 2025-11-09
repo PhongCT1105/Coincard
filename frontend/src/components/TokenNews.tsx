@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { TrendingUp, TrendingDown, Activity } from "lucide-react"
 
-type NewsDoc = {
+export type NewsDoc = {
   id?: string
   title?: string
   context?: string
@@ -12,6 +12,7 @@ type NewsDoc = {
 
 interface TokenNewsProps {
   token: string
+  onDocsReady?: (docs: NewsDoc[]) => void
 }
 
 const endpoint = "http://127.0.0.1:8000/news"
@@ -69,7 +70,7 @@ const getSentimentMeta = (score?: number) => {
   }
 }
 
-export default function TokenNews({ token }: TokenNewsProps) {
+export default function TokenNews({ token, onDocsReady }: TokenNewsProps) {
   const [docs, setDocs] = useState<NewsDoc[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -108,6 +109,10 @@ export default function TokenNews({ token }: TokenNewsProps) {
       cancelled = true
     }
   }, [token])
+
+  useEffect(() => {
+    onDocsReady?.(docs)
+  }, [docs, onDocsReady])
 
   return (
     <section className="bg-neutral-900 rounded-2xl p-6 space-y-4 border border-neutral-800/50">

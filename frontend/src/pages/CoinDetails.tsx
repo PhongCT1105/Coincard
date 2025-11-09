@@ -3,8 +3,9 @@ import { useHistoryState } from "wouter/use-browser-location"
 import { useEffect, useMemo, useState } from "react"
 import { ArrowLeft, Star } from "lucide-react"
 import { CoinSnapshot, persistCoinSnapshot, readCoinSnapshot } from "@/lib/coinSelection"
-import TokenNews from "@/components/TokenNews"
+import TokenNews, { NewsDoc } from "@/components/TokenNews"
 import PriceChart from "@/components/PriceChart"
+import ChatPanel from "@/components/ChatPanel"
 
 const formatCurrency = (value: number) =>
   Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(value)
@@ -16,6 +17,7 @@ export default function CoinDetails() {
   const params = useParams<{ symbol: string }>()
   const historyCoin = useHistoryState<CoinSnapshot | null>()
   const [coin, setCoin] = useState<CoinSnapshot | null>(() => historyCoin ?? readCoinSnapshot())
+  const [newsDocs, setNewsDocs] = useState<NewsDoc[]>([])
 
   useEffect(() => {
     if (historyCoin?.NAME) {
@@ -130,7 +132,12 @@ export default function CoinDetails() {
         </div>
       </section>
 
-      {tokenKey && <TokenNews token={tokenKey} />}
+      {tokenKey && (
+        <>
+          <TokenNews token={tokenKey} onDocsReady={setNewsDocs} />
+          <ChatPanel token={tokenKey} docs={newsDocs} />
+        </>
+      )}
     </div>
   )
 }

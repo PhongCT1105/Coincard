@@ -7,6 +7,7 @@ import snowflake.connector
 from datetime import datetime
 from src.routers import news
 from src.routers import ask
+from src.routers import chat
 
 # Create FastAPI app
 app = FastAPI(title="Replica Coinbase API", version="0.1.0")
@@ -26,6 +27,7 @@ app.include_router(crypto.router, prefix="/crypto")
 app.include_router(portfolio.router, prefix="/portfolio")
 app.include_router(news.router)
 app.include_router(ask.router)
+app.include_router(chat.router)
 app.include_router(auth.router, prefix="/auth")
 
 
