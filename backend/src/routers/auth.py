@@ -36,6 +36,7 @@ def signin_user(credentials: UserCredentials, db: snowflake.connector.SnowflakeC
             stored_hash = user_record["PASSWORD"] # 2. Check the password
             incoming_hash = hashlib.sha256(credentials.password.encode('utf-8')).hexdigest()
             is_password_match = (incoming_hash == stored_hash)
+            print(f"Line 39 auth.py: is_password_match = {is_password_match}")
 
             if not is_password_match:
                 print(f"[{datetime.now()}] Auth failure: Invalid password for user '{credentials.username}'.")
