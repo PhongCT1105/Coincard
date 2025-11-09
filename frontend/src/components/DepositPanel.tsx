@@ -3,14 +3,16 @@ import btc from "../../assets/Bitcoin.svg.png"
 import { ArrowDownCircle, ArrowUpCircle, Landmark, Wallet, Repeat } from "lucide-react"
 import OrderTypes from "./OrderTypes"
 import AmountInput from "./AmountInput"
+import CoinSearchPanel from "./CoinSearchPanel"
 
-export default function DepositPanel({ selectedCoin }) {
+export default function DepositPanel({ selectedCoin, onSelectCoin }) {
   const [mode, setMode] = useState("buy")
   const [showOrderTypes, setShowOrderTypes] = useState(false)
   const [orderType, setOrderType] = useState("One-time order")
   const [usd, setUsd] = useState("")
   const [coinEquivalent, setCoinEquivalent] = useState("")
   const [isReversed, setIsReversed] = useState(false)
+  const [showCoinSearch, setShowCoinSearch] = useState(false)
 
   useEffect(() => {
     if (selectedCoin) {
@@ -37,16 +39,26 @@ export default function DepositPanel({ selectedCoin }) {
   }
 
   const handleRevert = () => {
+    const price = selectedCoin?.price || 95000 // default BTC fallback
     setIsReversed(!isReversed)
-    // Swap the values
-    const tempUsd = usd
-    const tempCoin = coinEquivalent
-    setUsd(tempCoin)
-    setCoinEquivalent(tempUsd)
+  
+    if (isReversed) {
+      // Currently showing coin → switching back to USD
+      const coinVal = parseFloat(coinEquivalent) || 0
+      setUsd(coinVal ? (coinVal * price).toFixed(2) : "")
+      setCoinEquivalent(coinVal ? coinVal.toString() : "")
+    } else {
+      // Currently showing USD → switching to coin
+      const usdVal = parseFloat(usd) || 0
+      setCoinEquivalent(usdVal ? (usdVal / price).toFixed(6) : "")
+      setUsd(usdVal ? usdVal.toString() : "")
+    }
   }
+  
 
   const coinName = selectedCoin?.name || "Bitcoin"
   const coinThumb = selectedCoin?.thumb_image || btc
+  const coinSym = selectedCoin?.symbol || "BTC"
 
   if (showOrderTypes) {
     return (
@@ -62,10 +74,23 @@ export default function DepositPanel({ selectedCoin }) {
     )
   }
 
+  if (showCoinSearch) {
+    return (
+      <CoinSearchPanel
+        onBack={() => setShowCoinSearch(false)}
+        onSelectCoin={(coin) => {
+          onSelectCoin(coin)
+          setShowCoinSearch(false)
+          if (coin) selectedCoin = coin
+        }}
+      />
+    )
+  }
+
   return (
     <div className="bg-[#0d0d0d] rounded-xl pt-4 text-white space-y-6">
       {/* Tabs */}
-      <div className="flex gap-2 bg-neutral-800 p-1 rounded-full w-fit">
+      <div className="flex gap-2 bg-neutral-800 rounded-full cursor-pointer w-fit">
         {["buy", "sell", "convert"].map((tab) => (
           <button
             key={tab}
@@ -83,7 +108,7 @@ export default function DepositPanel({ selectedCoin }) {
       <div>
         <button
           onClick={() => setShowOrderTypes(true)}
-          className="w-[60%] items-center bg-neutral-800 px-4 py-3 rounded-3xl text-white font-bold hover:bg-neutral-900 transition"
+          className="w-[60%] items-center bg-neutral-800 px-4 py-2 cursor-pointer rounded-3xl text-white font-bold hover:bg-neutral-900 transition"
         >
           <span>{orderType}</span>
           <svg className="ml-3 h-5 w-5 inline" viewBox="0 0 20 20" fill="currentColor">
@@ -100,7 +125,7 @@ export default function DepositPanel({ selectedCoin }) {
       <div>
         <AmountInput 
           amount={isReversed ? coinEquivalent : usd} 
-          currency={isReversed ? coinName : "USD"} 
+          currency={isReversed ? coinSym : "USD"} 
           onChange={handleChange} 
         />
 
@@ -119,7 +144,7 @@ export default function DepositPanel({ selectedCoin }) {
 
       {/* Pay + Buy Section */}
       <div className="space-y-6 relative">
-        <div className="flex items-center gap-3 font-semibold">
+        <div className="flex items-center gap-3 font-semibold py-2 px-3">
           <img
             src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"
             alt="visa"
@@ -131,13 +156,19 @@ export default function DepositPanel({ selectedCoin }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 font-semibold">
-          <img src={coinThumb} alt="btc" className="w-8" />
-          <div>
-            <span>Buy</span>
-            <p className="text-sm text-gray-400">{coinName}</p>
+        <button
+          onClick={() => setShowCoinSearch(true)}
+          className="flex justify-between cursor-pointer w-full items-center gap-3 font-semibold hover:bg-gray-900 rounded-lg py-2 px-3"
+        >
+          <div className="flex items-center gap-3">
+            <img src={coinThumb} alt="btc" className="w-8" />
+            <div>
+              <span className="flex">Buy</span>
+              <p className="text-sm text-gray-400">{coinName}</p>
+            </div>
           </div>
-        </div>
+          <span className="font-light">{'>'}</span>
+        </button>
       </div>
 
       <button className="w-full bg-[#587BFA] hover:bg-[#3b6ef0] transition py-4 rounded-full font-semibold">

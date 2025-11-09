@@ -8,13 +8,15 @@ interface Coin {
   MARKET_CAP: number
   CHANGE: number
   THUMB_IMAGE: string
+  SYMBOL: string
+  VOLUME: number
   TIMESTAMP: string
 }
 
 interface CryptoListProps {
   showAll: boolean
   setShowAll: (v: boolean) => void
-  onSelectCoin: (coin: {name: string; price: number, thumb_image: string}) => void
+  onSelectCoin: (coin: { name: string; price: number; thumb_image: string; symbol: string }) => void
 }
 
 export default function CryptoList({ showAll, setShowAll, onSelectCoin }: CryptoListProps) {
@@ -27,7 +29,6 @@ export default function CryptoList({ showAll, setShowAll, onSelectCoin }: Crypto
       try {
         const res = await fetch("http://127.0.0.1:8000/crypto/top-20-coins")
         const json = await res.json()
-        console.log("Fetched crypto data:", json)
         const data: Coin[] = json.data || []
         setCryptos(sortCoins(data, "Market cap"))
       } catch (err) {
@@ -60,11 +61,12 @@ export default function CryptoList({ showAll, setShowAll, onSelectCoin }: Crypto
     setCryptos((prev) => sortCoins(prev, criteria))
   }
 
-  const formatMarketCap = (v: number): string => {
+  const formatNumber = (v: number): string => {
     if (v >= 1e12) return (v / 1e12).toFixed(2) + "T"
     if (v >= 1e9) return (v / 1e9).toFixed(2) + "B"
     if (v >= 1e6) return (v / 1e6).toFixed(2) + "M"
-    return v.toLocaleString()
+    if (v >= 1e3) return (v / 1e3).toFixed(2) + "K"
+    return v.toString()
   }
 
   const displayList = showAll ? cryptos : cryptos.slice(0, 5)
@@ -73,10 +75,7 @@ export default function CryptoList({ showAll, setShowAll, onSelectCoin }: Crypto
     return (
       <div className="space-y-4">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div
-            key={i}
-            className="flex items-center justify-between py-3"
-          >
+          <div key={i} className="flex items-center justify-between py-3">
             <Skeleton className="w-8 h-8 rounded-full" />
             <Skeleton className="w-32 h-4" />
           </div>
@@ -86,6 +85,7 @@ export default function CryptoList({ showAll, setShowAll, onSelectCoin }: Crypto
 
   return (
     <div className="py-5 text-gray-200">
+      {/* Sorting Buttons */}
       <div className="flex gap-3 mb-6">
         {["Market cap", "Top gainers", "Top losers"].map((filter) => (
           <button
@@ -102,48 +102,66 @@ export default function CryptoList({ showAll, setShowAll, onSelectCoin }: Crypto
         ))}
       </div>
 
-      {/* Table Header */}
-      <div className="grid grid-cols-6 text-gray-500 text-sm pb-2">
+      {/* Header */}
+      <div className="grid grid-cols-7 text-gray-500 text-sm pb-2">
         <div className="col-span-2">Name</div>
-        <div>Price</div>
-        <div className="pl-6">Market Cap</div>
-        <div className="pl-12">Change</div>
+        <div className="text-left">Price</div>
+        <div className="text-left">Volume</div>
+        <div className="text-left">Market Cap</div>
+        <div className="text-left">Change</div>
+        <div className="text-left pr-2"></div>
       </div>
 
-      {/* Table Rows */}
+      {/* Rows */}
       <div className="mt-1">
         {displayList.map((coin) => (
           <div
             key={coin.NAME}
-            className="grid grid-cols-6 items-center py-5 w-full flex-1 hover:bg-neutral-900 transition"
+            className="grid grid-cols-7 items-center py-5 w-full flex-1 hover:bg-neutral-900 transition"
           >
+            {/* Name */}
             <div className="flex items-center gap-3 col-span-2">
-              <img 
+              <img
                 src={coin.THUMB_IMAGE}
-                alt="coin.NAME"
+                alt={coin.NAME}
                 className="w-8 h-8 rounded-full"
               />
               <div>
                 <p className="font-medium">{coin.NAME}</p>
+                <p className="text-sm text-gray-400">{coin.SYMBOL}</p>
               </div>
             </div>
 
-            <p>${coin.PRICE.toLocaleString()}</p>
-            <p className="pl-6">{formatMarketCap(coin.MARKET_CAP)}</p>
+            {/* Price */}
+            <p className="text-left">${coin.PRICE.toLocaleString()}</p>
+
+            {/* Volume */}
+            <p className="text-left">{formatNumber(coin.VOLUME)}</p>
+
+            {/* Market Cap */}
+            <p className="text-left">{formatNumber(coin.MARKET_CAP)}</p>
+
+            {/* Change */}
             <p
-              className={`pl-12 ${
-                coin.CHANGE >= 0 ?  "text-green-400" : "text-red-400"
+              className={`text-left ${
+                coin.CHANGE >= 0 ? "text-green-400" : "text-red-400"
               }`}
             >
               {coin.CHANGE.toFixed(2)}%
             </p>
 
-            <div className="flex justify-end pr-2">
-              <button 
-                onClick={() => {
-                  onSelectCoin({name: coin.NAME, price: coin.PRICE, thumb_image: coin.THUMB_IMAGE})
-                }}
-                className="px-4 py-1 cursor-pointer text-sm rounded-full text-[#587BFA] font-medium transition"
+            {/* Buy Button */}
+            <div className="text-left pr-2">
+              <button
+                onClick={() =>
+                  onSelectCoin({
+                    name: coin.NAME,
+                    price: coin.PRICE,
+                    thumb_image: coin.THUMB_IMAGE,
+                    symbol: coin.SYMBOL,
+                  })
+                }
+                className="px-4 py-1 text-sm rounded-full text-[#587BFA] font-medium cursor-pointer hover:text-[#3b6ef0] transition"
               >
                 Buy
               </button>
@@ -152,6 +170,7 @@ export default function CryptoList({ showAll, setShowAll, onSelectCoin }: Crypto
         ))}
       </div>
 
+      {/* Browse All */}
       {!showAll && (
         <div className="mt-6 flex justify-center">
           <button
