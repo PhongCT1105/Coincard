@@ -271,6 +271,7 @@ export default function CryptoList({ showAll, setShowAll, onSelectCoin }: Crypto
 
   return (
     <div className="py-5 text-gray-200">
+      {/* Sorting Buttons */}
       <div className="flex gap-3 mb-6">
         {filters.map((filter) => (
           <button

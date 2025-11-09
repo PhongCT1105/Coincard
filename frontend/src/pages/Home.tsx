@@ -3,6 +3,7 @@
 import Topbar from "@/components/Topbar"
 import CryptoList from "@/components/CryptoList"
 import DepositPanel from "@/components/DepositPanel"
+import BalanceCard from "@/components/BalanceCard"
 import { useState } from "react"
 
 type SelectedCoin = { name: string; price: number; thumb_image: string; symbol: string }

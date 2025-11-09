@@ -1,11 +1,20 @@
 import { useEffect, useState } from "react"
 import btc from "../../assets/Bitcoin.svg.png"
-import { ArrowDownCircle, ArrowUpCircle, Landmark, Wallet, Repeat } from "lucide-react"
+import {
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Landmark,
+  Wallet,
+  Repeat,
+  CheckCircle2Icon,
+  AlertCircleIcon,
+} from "lucide-react"
 import OrderTypes from "./OrderTypes"
 import AmountInput from "./AmountInput"
 import CoinSearchPanel from "./CoinSearchPanel"
 
 export default function DepositPanel({ selectedCoin, onSelectCoin }) {
+
   const [mode, setMode] = useState("buy")
   const [showOrderTypes, setShowOrderTypes] = useState(false)
   const [orderType, setOrderType] = useState("One-time order")
@@ -23,16 +32,12 @@ export default function DepositPanel({ selectedCoin, onSelectCoin }) {
   }, [selectedCoin])
 
   const handleChange = (val: string) => {
-    // Use default BTC price if no coin is selected
-    const price = selectedCoin?.price || 95000 // Default BTC price
+    const price = selectedCoin?.price || 95000
     const num = parseFloat(val) || 0
-    
     if (isReversed) {
-      // Input is in coin, calculate USD
       setCoinEquivalent(val)
       setUsd(num ? (num * price).toFixed(2) : "")
     } else {
-      // Input is in USD, calculate coin
       setUsd(val)
       setCoinEquivalent(num ? (num / price).toFixed(6) : "")
     }
@@ -95,9 +100,8 @@ export default function DepositPanel({ selectedCoin, onSelectCoin }) {
           <button
             key={tab}
             onClick={() => setMode(tab)}
-            className={`capitalize px-5 py-2 rounded-full text-sm font-medium transition ${
-              mode === tab ? "bg-white text-black" : "text-gray-300 hover:text-white"
-            }`}
+            className={`capitalize px-5 py-2 rounded-full text-sm font-medium transition ${mode === tab ? "bg-white text-black" : "text-gray-300 hover:text-white"
+              }`}
           >
             {tab}
           </button>
@@ -128,17 +132,12 @@ export default function DepositPanel({ selectedCoin, onSelectCoin }) {
           currency={isReversed ? coinSym : "USD"} 
           onChange={handleChange} 
         />
-
-        {/* Convert/Revert button */}
         <button
           onClick={handleRevert}
           className="text-[#587BFA] text-sm flex items-center justify-center mt-2 select-none hover:text-[#3b6ef0] transition w-full"
         >
           <Repeat className="w-4 h-4 mr-1" />
-          {isReversed 
-            ? `${usd || "0"} USD`
-            : `${coinEquivalent || "0"} ${coinName}`
-          }
+          {isReversed ? `${usd || "0"} USD` : `${coinEquivalent || "0"} ${coinName}`}
         </button>
       </div>
 
@@ -171,10 +170,33 @@ export default function DepositPanel({ selectedCoin, onSelectCoin }) {
         </button>
       </div>
 
-      <button className="w-full bg-[#587BFA] hover:bg-[#3b6ef0] transition py-4 rounded-full font-semibold">
-        Review order
+      {/* Buy Now Button */}
+      <button
+        onClick={handleBuy}
+        disabled={!coinEquivalent || loading}
+        className="w-full bg-[#587BFA] hover:bg-[#3b6ef0] transition py-4 rounded-full cursor-pointer font-semibold disabled:opacity-50"
+      >
+        {loading ? "Processing..." : `Buy Now`}
       </button>
 
+      {alert.type && (
+        <Alert
+          variant={alert.type === "error" ? "destructive" : "default"}
+          className={`mt-3 ${alert.type === "success" ? "border-green-500 bg-green-950/40" : "bg-red-400"
+            }`}
+        >
+          {alert.type === "success" ? (
+            <CheckCircle2Icon className="h-5 w-5 text-white" />
+          ) : (
+            <AlertCircleIcon className="h-5 w-5 text-white" />
+          )}
+          <AlertTitle className="text-white">{alert.title}</AlertTitle>
+          <AlertDescription>{alert.desc}</AlertDescription>
+        </Alert>
+      )}
+
+
+      {/* Bottom Quick Actions */}
       <div className="space-y-3 border-t border-neutral-800 pt-4 font-bold">
         {[
           { icon: ArrowUpCircle, text: "Send crypto" },
