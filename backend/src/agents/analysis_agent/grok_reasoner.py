@@ -3,7 +3,7 @@ import os
 import re
 import json
 import requests
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 from dotenv import load_dotenv
 
 # --------- Config (env) ----------
@@ -132,6 +132,107 @@ def answer_with_grok(
         return {
             "answer": f"Model offline. From the snippets: {_smart_trim(first['snippet'], 220)} [{first['idx']}]"+other,
             "sources": sources
+        }
+
+def live_trade_recommendation(
+    token: str,
+    docs: List[Dict],
+    question: Optional[str] = None,
+) -> Dict:
+    if not docs:
+        return {
+            "analysis": "Insufficient context to suggest a trade.",
+            "trade_plan": {
+                "side": "hold",
+                "asset": token,
+                "amount": 0,
+                "confidence": 0.0,
+                "notes": "No recent documents available.",
+            },
+        }
+
+    ctx, sources, _ = _build_context_dynamic(docs)
+    system_prompt = (
+        "You are a live-trading strategist. Read the provided context and output a structured trade idea.\n"
+        "Respond in STRICT JSON like:\n"
+        "{\n"
+        '  "analysis": "short reasoning with references like [1]",\n'
+        '  "trade_plan": {\n'
+        '     "side": "buy|sell|hold",\n'
+        '     "asset": "TOKEN",\n'
+        '     "amount": number_of_units,\n'
+        '     "confidence": 0-1,\n'
+        '     "notes": "execution notes"\n'
+        "  }\n"
+        "}"
+    )
+    live_question = question or f"Generate a tactical trade action for {token} right now."
+    user_prompt = (
+        f"Token: {token}\n"
+        f"Objective: {live_question}\n\n"
+        f"Context (numbered sources):\n{ctx}\n\n"
+        "Rules:\n"
+        "1) Use ONLY the provided context; cite indices in analysis.\n"
+        "2) Amount is in units of the asset (e.g., 0.5 BTC). Choose a reasonable small number like 0.2 if unsure.\n"
+        "3) If context is neutral or conflicting, choose HOLD with low confidence.\n"
+    )
+
+    if not XAI_API_KEY:
+        return {
+            "analysis": f"Model offline. Latest snippet: {_smart_trim(sources[0]['snippet'], 200)}",
+            "trade_plan": {
+                "side": "hold",
+                "asset": token,
+                "amount": 0,
+                "confidence": 0.0,
+                "notes": "Model unavailable.",
+            },
+        }
+
+    try:
+        resp = requests.post(
+            "https://api.x.ai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {XAI_API_KEY}", "Content-Type": "application/json"},
+            json={
+                "model": XAI_MODEL,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "temperature": 0.15,
+                "max_tokens": 420,
+            },
+            timeout=20,
+        )
+        if resp.status_code != 200:
+            raise RuntimeError(resp.text)
+        data = resp.json()
+        text = (data.get("choices") or [{}])[0].get("message", {}).get("content", "") or ""
+        cleaned = text.strip().strip("`")
+        if cleaned.startswith("json"):
+            cleaned = cleaned[4:].strip()
+        payload = json.loads(cleaned)
+        analysis = payload.get("analysis") or "No analysis provided."
+        trade_plan = payload.get("trade_plan") or {}
+        trade_plan.setdefault("asset", token)
+        if trade_plan.get("side") == "sell":
+            trade_plan["side"] = "hold"
+            trade_plan["amount"] = 0
+            trade_plan["notes"] = "Sell signals are disabled; defaulting to hold."
+        return {
+            "analysis": _strip_noise(analysis),
+            "trade_plan": trade_plan,
+        }
+    except Exception as e:
+        return {
+            "analysis": f"Live decision failed ({e}).",
+            "trade_plan": {
+                "side": "hold",
+                "asset": token,
+                "amount": 0,
+                "confidence": 0.0,
+                "notes": "Fallback hold recommendation.",
+            },
         }
 
     try:
