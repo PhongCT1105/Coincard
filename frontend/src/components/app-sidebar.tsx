@@ -1,7 +1,9 @@
 "use client"
-import { Home, History, Workflow } from "lucide-react"
+import { Home, LineChart, History, Workflow } from "lucide-react"
+import { useState } from "react"
 import { useMemo } from "react"
 import { useLocation } from "wouter"
+import AnomalyAlerts from "@/components/AnomalyAlerts";
 
 const items = [
   { title: "Home", url: "/", icon: Home },
@@ -65,6 +67,9 @@ export function AppSidebar({
             })}
           </ul>
         </nav>
+        <div className="w-full px-4 mt-6">
+          <AnomalyAlerts />
+        </div>
       </div>
     </div>
   )
