@@ -107,7 +107,10 @@ export default function TransactionList({ userId }: { userId: string }) {
 
   return (
     <div className="w-full text-white">
-      <h2 className="text-xl font-semibold mb-4 mt-8">Transaction History</h2>
+      <h2 className="text-xl font-semibold mb-4 mt-8">
+        {new Date().toLocaleString("en-US", { month: "long", year: "numeric" })}
+      </h2>
+
       <div className="space-y-4">
         {paginatedData.map((tx) => {
           const isPositive = tx.total_usd >= 0
