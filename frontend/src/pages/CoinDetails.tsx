@@ -3,6 +3,7 @@ import { useHistoryState } from "wouter/use-browser-location"
 import { useEffect, useMemo, useState } from "react"
 import { ArrowLeft, Star } from "lucide-react"
 import { CoinSnapshot, persistCoinSnapshot, readCoinSnapshot } from "@/lib/coinSelection"
+import TokenNews from "@/components/TokenNews"
 
 const formatCurrency = (value: number) =>
   Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(value)
@@ -52,6 +53,7 @@ export default function CoinDetails() {
   }
 
   const updatedAt = new Date(coin.TIMESTAMP)
+  const tokenKey = coin.SYMBOL || params?.symbol || coin.NAME
   const stats = [
     { label: "Market cap", value: formatCompact(coin.MARKET_CAP) },
     { label: "24h volume", value: formatCompact(coin.VOLUME) },
@@ -129,6 +131,8 @@ export default function CoinDetails() {
           </p>
         </div>
       </section>
+
+      {tokenKey && <TokenNews token={tokenKey} />}
     </div>
   )
 }
