@@ -11,7 +11,7 @@ def get_top_20_coins(db: snowflake.connector.SnowflakeConnection = Depends(get_d
     print(f"[{datetime.now()}] API call received for /top-20-coins")
 
     query = """
-    SELECT NAME, PRICE, MARKET_CAP, CHANGE, THUMB_IMAGE, TIMESTAMP
+    SELECT NAME, PRICE, MARKET_CAP, CHANGE, THUMB_IMAGE, SYMBOL, VOLUME, TIMESTAMP
     FROM CRYPTO
     ORDER BY TIMESTAMP DESC, MARKET_CAP DESC, PRICE DESC, CHANGE DESC, NAME ASC
     LIMIT 20;
