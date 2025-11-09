@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Sparkles, Zap, Loader2 } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 
@@ -29,62 +29,75 @@ export default function Strategy() {
   const [plannerResult, setPlannerResult] = useState<any | null>(null)
   const [plannerLoading, setPlannerLoading] = useState(false)
   const [plannerError, setPlannerError] = useState<string | null>(null)
+  const sourceRef = useRef<EventSource | null>(null)
 
-  const runPlanner = async () => {
+  const runPlanner = () => {
     if (!goal.trim()) return
+    if (sourceRef.current) {
+      sourceRef.current.close()
+      sourceRef.current = null
+    }
     setPlannerLoading(true)
     setPlannerError(null)
     setPlannerResult({ steps: [], final_answer: "" })
     try {
-      const res = await fetch("http://127.0.0.1:8000/orchestrate/plan-stream", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          goal,
-          token,
-          user_id: user?.user_id || "U01",
-        }),
+      const params = new URLSearchParams({
+        goal,
+        token,
+        user_id: user?.user_id || "U01",
+        max_steps: "4",
+        stop_score: "0.55",
       })
-      if (!res.ok || !res.body) {
-        throw new Error(`Planner failed with ${res.status}`)
-      }
-      const reader = res.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ""
-      while (true) {
-        const { value, done } = await reader.read()
-        if (done) break
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split("\n")
-        buffer = lines.pop() || ""
-        for (const line of lines) {
-          if (!line.trim()) continue
-          try {
-            const event = JSON.parse(line)
-            if (event.type === "step") {
-              setPlannerResult((prev: any) => ({
-                ...prev,
-                steps: [...(prev?.steps || []), event.data],
-              }))
-            } else if (event.type === "final") {
-              setPlannerResult((prev: any) => ({
-                ...prev,
-                final_answer: event.final_answer,
-                context: event.context,
-              }))
-            }
-          } catch (e) {
-            console.error("Failed to parse planner chunk", e, line)
+      const source = new EventSource(
+        `http://127.0.0.1:8000/orchestrate/plan-sse?${params.toString()}`
+      )
+      sourceRef.current = source
+
+      source.onmessage = (event) => {
+        if (!event.data) return
+        if (event.data === "Planner started") return
+        try {
+          const payload = JSON.parse(event.data)
+          if (payload.type === "step") {
+            setPlannerResult((prev: any) => ({
+              ...prev,
+              steps: [...(prev?.steps || []), payload.data],
+            }))
+          } else if (payload.type === "final") {
+            setPlannerResult((prev: any) => ({
+              ...prev,
+              final_answer: payload.final_answer,
+              context: payload.context,
+            }))
+            source.close()
+            sourceRef.current = null
+            setPlannerLoading(false)
           }
+        } catch (error) {
+          console.error("Failed to parse SSE payload", error, event.data)
         }
+      }
+
+      source.onerror = () => {
+        setPlannerError("Planner stream failed.")
+        source.close()
+        sourceRef.current = null
+        setPlannerLoading(false)
       }
     } catch (err) {
       setPlannerError(err instanceof Error ? err.message : "Planner failed.")
       setPlannerResult(null)
-    } finally {
       setPlannerLoading(false)
     }
   }
+
+  useEffect(() => {
+    return () => {
+      if (sourceRef.current) {
+        sourceRef.current.close()
+      }
+    }
+  }, [])
 
   return (
     <div className="flex flex-col min-h-screen bg-[#050505] text-white p-10 space-y-10">
