@@ -1,14 +1,20 @@
-import { Home, LineChart, History } from "lucide-react"
-import { useState } from "react"
+import { Home, LineChart, History, Workflow } from "lucide-react"
+import { useMemo } from "react"
+import { useLocation } from "wouter"
 
 const items = [
-  { title: "Home", url: "#", icon: Home },
-  { title: "Trade", url: "#", icon: LineChart },
-  { title: "Transactions", url: "#", icon: History },
+  { title: "Home", url: "/", icon: Home },
+  { title: "Trade", url: "/trade", icon: LineChart },
+  { title: "Transactions", url: "/transactions", icon: History },
+  { title: "Strategic Lab", url: "/strategy", icon: Workflow },
 ]
 
 export function AppSidebar() {
-  const [active, setActive] = useState("Home")
+  const [location, navigate] = useLocation()
+  const active = useMemo(() => {
+    const match = items.find((item) => item.url === location)
+    return match?.title || "Home"
+  }, [location])
   
   return (
     <div className="w-64 bg-[#0d0d0d] text-white h-screen flex flex-col">
@@ -29,7 +35,7 @@ export function AppSidebar() {
                     href={item.url}
                     onClick={(e) => {
                       e.preventDefault()
-                      setActive(item.title)
+                      navigate(item.url)
                     }}
                     className={`flex items-center gap-4 w-full px-6 py-4 rounded-4xl text-lg font-semibold transition-all duration-200
                       ${
