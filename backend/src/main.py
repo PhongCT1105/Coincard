@@ -2,9 +2,12 @@ import sys
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from src.settings import settings
-from src.routers import health, crypto, portfolio, auth, anomaly
+from src.routers import health
+from src.routers import crypto
+from src.routers import portfolio
+from src.routers import auth
+from src.routers import anomaly
 import snowflake.connector
-from datetime import datetime
 from src.routers import news
 from src.routers import ask
 from src.routers import chat
@@ -13,7 +16,7 @@ from src.routers import orchestrator
 from src.routers import live_trade
 
 # Create FastAPI app
-app = FastAPI(title="Replica Coinbase API", version="0.1.0")
+app = FastAPI(title="CoinCard API | Replica Coinbase", version="0.1.0")
 
 # Add CORS middleware (allows frontend access)
 app.add_middleware(
