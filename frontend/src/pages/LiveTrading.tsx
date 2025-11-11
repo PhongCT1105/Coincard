@@ -50,7 +50,6 @@ export default function LiveTrading() {
 
   useEffect(() => {
     requestDeal()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected.symbol])
 
   const requestDeal = async () => {
@@ -73,20 +72,14 @@ export default function LiveTrading() {
     } catch (err) {
       console.error(err)
       setDeal(null)
-    } finally {
-      setDealLoading(false)
-    }
+    } finally setDealLoading(false)
   }
 
   const executeTrade = (side: "trade" | "hold") => {
     if (!deal?.trade_plan) return
     if (side === "trade") {
-      setExecutionStatus(
-        `🎉 Bought ${deal.trade_plan.amount} ${deal.trade_plan.asset}. Reloading...`
-      )
-    } else {
-      setExecutionStatus("⏸ Holding for the next deal. Reloading…")
-    }
+      setExecutionStatus(`🎉 Bought ${deal.trade_plan.amount} ${deal.trade_plan.asset}. Reloading...`)
+    } else setExecutionStatus("⏸ Holding for the next deal. Reloading…")
     setTimeout(() => {
       requestDeal()
     }, 1200)
@@ -99,22 +92,13 @@ export default function LiveTrading() {
   }
 
   const sentimentMeta = (score?: number) => {
-    if (typeof score !== "number") {
-      return { label: "Neutral", color: "text-gray-300", bg: "bg-neutral-900/70", border: "border-neutral-800", Icon: Activity }
-    }
-    if (score >= 0.15) {
-      return { label: "Bullish", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/30", Icon: TrendingUp }
-    }
-    if (score <= -0.15) {
-      return { label: "Bearish", color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/30", Icon: TrendingDown }
-    }
+    if (typeof score !== "number") return { label: "Neutral", color: "text-gray-300", bg: "bg-neutral-900/70", border: "border-neutral-800", Icon: Activity }
+    if (score >= 0.15) return { label: "Bullish", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/30", Icon: TrendingUp }
+    if (score <= -0.15) return { label: "Bearish", color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/30", Icon: TrendingDown }
     return { label: "Neutral", color: "text-amber-300", bg: "bg-amber-500/10", border: "border-amber-400/30", Icon: Activity }
   }
 
-  const meanSentiment =
-    news.length > 0
-      ? news.reduce((sum, item) => sum + Number(item.sentiment_score || 0), 0) / news.length
-      : null
+  const meanSentiment = news.length > 0 ? news.reduce((sum, item) => sum + Number(item.sentiment_score || 0), 0) / news.length : null
 
   return (
     <div className="flex flex-col min-h-screen bg-[#050505] text-white p-10 space-y-10">
@@ -150,8 +134,7 @@ export default function LiveTrading() {
           </div>
         </div>
         <p className="text-gray-400 max-w-3xl">
-          Monitor {selected.name} with live price context, curated news, and an AI assistant that proposes
-          actionable trades you can accept or ignore.
+          Monitor {selected.name} with live price context, curated news, and an AI assistant that proposes actionable trades you can accept or ignore.
         </p>
       </header>
 
@@ -204,9 +187,7 @@ export default function LiveTrading() {
                     </a>
                   )
                 })}
-                {news.length === 0 && (
-                  <p className="text-sm text-gray-500">No recent news found for {selected.symbol}.</p>
-                )}
+                {news.length === 0 && (<p className="text-sm text-gray-500">No recent news found for {selected.symbol}.</p>)}
               </div>
             )}
           </div>
@@ -277,9 +258,7 @@ export default function LiveTrading() {
                 )}
               </div>
             ) : (
-              <div className="rounded-2xl border border-neutral-800 bg-neutral-950/60 p-4 text-sm text-gray-400">
-                Agent is preparing a deal…
-              </div>
+              <div className="rounded-2xl border border-neutral-800 bg-neutral-950/60 p-4 text-sm text-gray-400">Agent is preparing a deal…</div>
             )}
           </div>
 
